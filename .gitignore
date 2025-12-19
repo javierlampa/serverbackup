@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+instance/
+*.log
+panel_data.db
+PARA_SERVER_EMERGENCIA/
+PARA_SERVER_GLOBAL/
+backups/
+en el serverglobal/
+journal_debug.txt
+.env
+.DS_Store

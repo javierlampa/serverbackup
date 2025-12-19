@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Configuración Avanzada de Horarios | HA Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 100%;
+            width: 900px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        h1,
+        h2 {
+            color: #f8fafc;
+            margin: 0 0 10px 0;
+        }
+        .card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+            position: relative;
+        }
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background: #020617;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #1e293b;
+        }
+        .pill {
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .pill.success {
+            background: #059669;
+            color: white;
+        }
+        /* Flash Messages */
+        .flash {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .flash.success {
+            background: #064e3b;
+            color: #6ee7b7;
+            border: 1px solid #059669;
+        }
+        .flash.error {
+            background: #450a0a;
+            color: #fca5a5;
+            border: 1px solid #dc2626;
+        }
+        .flash.warning {
+            background: #451a03;
+            color: #fdba74;
+            border: 1px solid #d97706;
+        }
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: #475569;
+            color: #f1f5f9;
+        }
+        .btn-secondary:hover {
+            background: #334155;
+        }
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-green {
+            background: #22c55e;
+            color: #022c22;
+        }
+        .btn-green:hover {
+            background: #16a34a;
+        }
+        /* Rules Table */
+        .rules-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .rules-table th {
+            text-align: left;
+            padding: 12px;
+            color: #94a3b8;
+            border-bottom: 1px solid #334155;
+        }
+        .rules-table td {
+            padding: 12px;
+            border-bottom: 1px solid #1e293b;
+            vertical-align: middle;
+        }
+        input[type="time"] {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1em;
+        }
+        /* Checkbox Group */
+        .days-group {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+        .day-check-label {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        .day-check-input {
+            display: none;
+        }
+        .day-check-span {
+            display: block;
+            padding: 6px 10px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            color: #64748b;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+        .day-check-input:checked+.day-check-span {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .day-check-label:hover .day-check-span {
+            border-color: #64748b;
+        }
+        /* Overlay */
+        .overlay-disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(100%);
+        }
+        .input-group {
+            margin-top: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #94a3b8;
+        }
+        .input-group input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h1>📅 Programador Avanzado</h1>
+                <p style="color:#94a3b8; margin:0;">Gestión de reglas individuales para Backup HA</p>
+            </div>
+            <a href="/dashboard" class="btn btn-secondary">⬅ Volver al Dashboard</a>
+        </div>
+        <!-- FLASH MESSAGES -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <!-- 1. LOAD CONFIG -->
+        <div class="card">
+            <form method="POST" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h2>1. Cargar Configuración Actual</h2>
+                    <div style="color:#94a3b8; font-size:0.9em;">Lee la tarea remota desde SERVERGLOBAL</div>
+                </div>
+                <button type="submit" name="load_config" value="1" class="btn btn-primary">🔄 Cargar de
+                    Servidor</button>
+            </form>
+            <!-- Current Status Info -->
+            {% if current_status %}
+            <div
+                style="margin-top:15px; padding:10px; background:#020617; border-left:4px solid #3b82f6; font-family:monospace; color:#cbd5e1;">
+                {{ current_status }}
+            </div>
+            {% endif %}
+        </div>
+        <!-- 2. EDITOR RULES (Shown always, enabled after load) -->
+        <div class="card {% if not config_loaded %}overlay-disabled{% endif %}">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="color:#f8fafc;">📋 2. Editor de Reglas</h2>
+                <button type="button" onclick="addRuleRow()" class="btn btn-green">➕ Añadir Nueva Regla</button>
+            </div>
+            <div style="background:#0f172a; border-radius:8px; overflow:hidden; border:1px solid #334155;">
+                <table class="rules-table">
+                    <thead>
+                        <tr>
+                            <th style="width:150px;">⏰ Hora Inicio</th>
+                            <th>📅 Días de Ejecución</th>
+                            <th style="width:50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="rulesBody">
+                        <!-- Javascript will populate this -->
+                    </tbody>
+                </table>
+                <div id="emptyState" style="padding:40px; text-align:center; color:#64748b; display:none;">
+                    <p>No hay reglas definidas. Añade una para comenzar.</p>
+                </div>
+            </div>
+            <!-- SAVE FORM -->
+            <div style="margin-top:20px; padding-top:20px; border-top:1px solid #334155;">
+                <form method="POST" id="saveForm" onsubmit="prepareJsonPayload(event)">
+                    <input type="hidden" name="save_config" value="1">
+                    <input type="hidden" name="schedule_config" id="scheduleConfigJson">
+                    <h3 style="color:#f8fafc;">💾 3. Guardar en Servidor Global</h3>
+                    <div class="input-group">
+                        <label>Contraseña ADMIN (Servidor Global):</label>
+                        <input type="password" name="admin_pass_save"
+                            placeholder="Requerido para permisos de escritura remota..." required>
+                    </div>
+                    <div style="margin-top:15px; text-align:right;">
+                        <button type="submit" class="btn btn-danger">🚀 Aplicar Configuración</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        // State from Backend (Summary List)
+        // summary_list structure: [{'label': 'Lun, Mar', 'times': ['00:00', '12:00'], 'days_codes': ['MON', 'TUE']?}]
+        // Actually we need to reconstruct rules. 
+        // Since backend summary is grouped, we can ungroup it for the UI grid if we want simplicity, 
+        // OR triggers are naturally rules.
+        // Let's assume user wants to edit what he sees.
+        // We need 'summary_list' to contain raw data or at least codes.
+        // The current summary_list only had labels. 
+        // Let's rely on rebuilding from UI for new rules, but for loading we might default to empty if complex invalid.
+        // Wait, backend 'summary_list' logic: groups[days_key].
+        // Let's inject a JSON payload from backend if possible, or just start manual since 
+        // the user wants to FIX the broken config.
+        // BETTER IDEA: Start blank or default ?
+        // If 'summary_list' is passed, we can try to infer.
+        // But since the user had "mixed" state, starting FRESH might be cleaner.
+        // Let's allow manual add.
+        const WEEKDAYS = [
+            { code: 'MON', label: 'Lun' }, { code: 'TUE', label: 'Mar' }, { code: 'WED', label: 'Mié' },
+            { code: 'THU', label: 'Jue' }, { code: 'FRI', label: 'Vie' }, { code: 'SAT', label: 'Sáb' }, { code: 'SUN', label: 'Dom' }
+        ];
+        function createDaySelector(selectedCodes = []) {
+            let html = `<div class="days-group">`;
+            WEEKDAYS.forEach(day => {
+                const isChecked = selectedCodes.includes(day.code) || selectedCodes.length === 0; // Default all if empty? No.
+                html += `
+                <label class="day-check-label">
+                    <input type="checkbox" class="day-check-input" value="${day.code}" ${isChecked ? '' : ''}>
+                    <span class="day-check-span" onclick="toggleCheck(this)">${day.label}</span>
+                </label>
+            `;
+            });
+            html += `</div>`;
+            return html;
+        }
+        // Helper to toggle class visually (actual checkbox logic handled by browser but we trigger styling)
+        function toggleCheck(span) {
+            // UI feedback handled by :checked CSS selector on previous sibling 
+            // Need to ensure click propagates to input. Label handles this natively.
+        }
+        function addRuleRow(timeVal = "00:00", daysCodes = null) {
+            const tbody = document.getElementById("rulesBody");
+            const row = document.createElement("tr");
+            // Days HTML
+            let daysHtml = `<div class="days-group">`;
+            const selectAll = (daysCodes === null || daysCodes.length === 7); // If null (new), empty. Wait user wants explicit.
+            // Let's default to Empty for new rule? Or All? Let's do All for convenience.
+            WEEKDAYS.forEach(day => {
+                // Backend sends [] for Daily (All Days). JS treats [] as true object but empty.
+                const isDaily = (daysCodes === null) || (Array.isArray(daysCodes) && daysCodes.length === 0);
+                const checked = isDaily || (daysCodes && daysCodes.includes(day.code));
+                daysHtml += `
+            <label class="day-check-label">
+                <input type="checkbox" class="day-check-input" value="${day.code}" ${checked ? 'checked' : ''}>
+                <span class="day-check-span">${day.label}</span>
+            </label>`;
+            });
+            daysHtml += '</div>';
+            row.innerHTML = `
+            <td><input type="time" class="rule-time" value="${timeVal}" required></td>
+            <td>${daysHtml}</td>
+            <td><button type="button" class="btn btn-secondary" style="padding:4px 8px; font-size:1.2em;" onclick="this.closest('tr').remove(); checkEmpty();">🗑️</button></td>
+        `;
+            tbody.appendChild(row);
+            checkEmpty();
+        }
+        function checkEmpty() {
+            const tbody = document.getElementById("rulesBody");
+            const empty = document.getElementById("emptyState");
+            if (tbody.children.length === 0) empty.style.display = 'block';
+            else empty.style.display = 'none';
+        }
+        function prepareJsonPayload(e) {
+            // Stop submission to serialize
+            // e.preventDefault(); // We let it submit, just updating hidden input first.
+            const rows = document.querySelectorAll("#rulesBody tr");
+            const rules = [];
+            rows.forEach(row => {
+                const t = row.querySelector(".rule-time").value;
+                const checks = row.querySelectorAll(".day-check-input:checked");
+                const d = Array.from(checks).map(c => c.value);
+                // Logic: If 7 days selected -> empty days list (Daily)
+                // Logic: If 0 days -> Skip? Or warn?
+                // The backend expects: [] for All Days (Daily), ['MON'] for Specific.
+                let finalDays = [];
+                if (d.length === 7) finalDays = []; // DAILY
+                else if (d.length === 0) return; // Skip empty rules?
+                else finalDays = d;
+                rules.push({ time: t, days: finalDays });
+            });
+            console.log("Submitting Config:", rules);
+            document.getElementById("scheduleConfigJson").value = JSON.stringify(rules);
+            return true;
+        }
+        {% if summary_list %}
+        console.log("Loading rules from summary_list...", {{ summary_list | tojson }});
+        {% for group in summary_list %}
+        // Group: {{ group.label }}
+        {% for t in group.times %}
+        addRuleRow("{{ t }}", {{ group.codes | tojson }});
+        {% endfor %}
+        {% endfor %}
+        {% else %}
+        // Default init (only if empty)
+        checkEmpty();
+        {% endif %}
+    </script>
+</body>
+</html>

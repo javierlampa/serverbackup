@@ -1,0 +1,12 @@
+venv/
+__pycache__/
+*.pyc
+.git/
+*.log
+instance/
+.env
+PARA_SERVER_EMERGENCIA/
+PARA_SERVER_GLOBAL/
+backups/
+en el serverglobal/
+journal_debug.txt

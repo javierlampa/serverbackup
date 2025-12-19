@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>PANEL SERVER</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #e2e8f0;
+            --accent: #38bdf8;
+            --success: #22c55e;
+            --error: #ef4444;
+            --used: #f43f5e;
+            --free: #10b981;
+        }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            color: var(--accent);
+        }
+        .btn-nav {
+            background: #334155;
+            color: white;
+            padding: 6px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .card {
+            background: var(--panel);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        .card-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 15px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .status-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .status-box {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .status-online {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+        .status-offline {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        .disks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        .disk-card {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .pie-chart {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 10px auto;
+            background: conic-gradient(var(--used) 0% var(--p), var(--free) var(--p) 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pie-inner {
+            width: 80px;
+            height: 80px;
+            background: #0f172a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .disk-name {
+            font-size: 0.85em;
+            color: #94a3b8;
+            margin-bottom: 5px;
+            height: 35px;
+            overflow: hidden;
+        }
+        .disk-details {
+            font-size: 0.8em;
+            color: #cbd5e1;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            transition: 0.3s;
+            border: 2px solid transparent;
+        }
+        .btn-inactive {
+            opacity: 0.4;
+            filter: grayscale(80%);
+        }
+        .btn-inactive:hover {
+            opacity: 0.8;
+            filter: grayscale(0%);
+        }
+        .btn-active-rw {
+            background-color: var(--error);
+            border-color: #fca5a5;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+            opacity: 1 !important;
+        }
+        .btn-active-ro {
+            background-color: var(--success);
+            border-color: #86efac;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+            opacity: 1 !important;
+        }
+        .btn-failover {
+            background: var(--error);
+        }
+        .btn-failback {
+            background: var(--success);
+        }
+        .log-console {
+            background: black;
+            color: #00ff00;
+            font-family: monospace;
+            padding: 10px;
+            height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+            border: 1px solid #333;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+        th {
+            text-align: left;
+            padding: 8px;
+            color: var(--accent);
+            border-bottom: 1px solid #334155;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #334155;
+        }
+        .tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .tag-SUCCESS {
+            background: var(--success);
+            color: black;
+        }
+        .tag-ERROR {
+            background: var(--error);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SISTEMA DE BACKUP DE SERVIDORES TELESOL V1.0</h1>
+        <div class="user-info">
+            Usuario: <b>{{ user }}</b>
+            {% if role == 'admin' %}
+            <a href="/admin/schedule" class="btn-nav" style="color:#f59e0b">⏱️ Horarios</a>
+            <a href="/admin/users" class="btn-nav">👥 Usuarios</a>
+            {% endif %}
+            <a href="/logs" class="btn-nav">📜 Logs Full</a>
+            <a href="/logout" class="btn-nav" style="background: #ef4444;">Salir</a>
+        </div>
+    </div>
+    <div class="status-row">
+        <div id="status-global" class="status-box status-offline">
+            <h2>GLOBAL SERVER</h2>
+            <div id="global-text">CONECTANDO...</div>
+        </div>
+        <div class="status-box status-online">
+            <h2>EMERGENCIA (LOCAL)</h2>
+            <div>ONLINE - MODO: <span id="current-mode-text">...</span></div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">💾 ALMACENAMIENTO</div>
+        <div class="disks-container">
+            {% for name, disk in disks.items() %}
+            <div class="disk-card">
+                <div class="disk-name">{{ name }}</div>
+                {% if disk.status == 'OK' %}
+                <div class="pie-chart" style="--p: {{ disk.percent }}%;">
+                    <div class="pie-inner">{{ disk.percent }}%</div>
+                </div>
+                <div class="disk-details">{{ disk.used }}GB / {{ disk.total }}GB</div>
+                {% else %}
+                <div
+                    style="height:100px; display:flex; align-items:center; justify-content:center; color:var(--error);">
+                    OFFLINE</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-title">⚡ MODOS DE OPERACIÓN</div>
+            <button id="btn-failover" onclick="runAction('failover')" class="btn-action btn-failover btn-inactive">
+                FORZAR MODO EMERGENCIA (ESCRITURA)
+                <div style="font-size:0.7em; margin-top:5px; font-weight:normal;">Úsalo si Global Cae para empezar a
+                    trabajar aquí</div>
+            </button>
+            <button id="btn-failback" onclick="runAction('failback')" class="btn-action btn-failback btn-inactive">
+                RESTAURAR A NORMALIDAD (LECTURA)
+                <div style="font-size:0.7em; margin-top:5px; font-weight:normal;">* Se ejecutará AUTOMÁTICAMENTE si
+                    Global vuelve</div>
+            </button>
+            <div id="console" class="log-console">Esperando evento...</div>
+        </div>
+        <div class="card" style="border-color:#eab308;">
+            <div class="card-title" style="color:#eab308;">🚀 ACCIONES RÁPIDAS</div>
+            <p style="margin:0 0 10px 0; color:#cbd5e1;">Ejecución remota de backup sin esperar horario.</p>
+            <form action="/admin/run_backup" method="POST">
+                <label style="color:#94a3b8; display:block; margin-bottom:5px;">Password Admin (Server Global):</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="password" name="admin_pass_run"
+                        style="flex:1; padding:8px; background:#0f172a; border:1px solid #334155; color:white; border-radius:4px;"
+                        required placeholder="••••">
+                    <button type="submit" name="run_now" value="1" class="btn-action"
+                        style="width:auto; padding:8px 15px; margin:0; background:#eab308; color:black; font-size:1em;">▶
+                        Ejecutar</button>
+                </div>
+            </form>
+        </div>
+        <div class="card">
+            <div class="card-title">🛡️ ULTIMOS EVENTOS</div>
+            <div style="height: 250px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>HORA</th>
+                            <th>ACCIÓN</th>
+                            <th>R</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.timestamp.split(' ')[1] }}</td>
+                            <td>{{ log.action }}</td>
+                            <td><span class="tag tag-{{ log.result }}">{{ log.result[0] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top:10px; font-size:0.8em; color:#ccc;">
+                <b>Resumen Último Backup (Global):</b><br>
+                {% if backup_log.status == 'ERROR' or backup_log.status == 'NOT_FOUND' %}
+                    <div style="color:var(--error); margin-top:10px;">{{ backup_log.msg }}</div>
+                {% else %}
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px; background:#1e293b; padding:10px; border-radius:6px;">
+                        <div>
+                            <div style="font-size:0.8em; color:#94a3b8;">Inicio</div>
+                            <div>{{ backup_log.start }}</div>
+                        </div>
+                        <div>
+                            <div style="font-size:0.8em; color:#94a3b8;">Fin</div>
+                            <div>{{ backup_log.end }}</div>
+                        </div>
+                    </div>
+                    
+                    <table style="margin-top:10px; font-size:0.9em;">
+                        <tr style="background:#334155;">
+                            <th>Archivos</th>
+                            <th style="color:white;">Totales</th>
+                        </tr>
+                        <tr><td>Copiados</td><td style="color:var(--success);">{{ backup_log.copied }}</td></tr>
+                        <tr><td>Fallidos</td><td style="color:var(--error); font-weight:bold;">{{ backup_log.failed }}</td></tr>
+                        <tr><td>Omitidos</td><td style="color:#94a3b8;">{{ backup_log.skipped }}</td></tr>
+                        <tr style="border-top:1px solid #475569;"><td><b>TOTAL</b></td><td><b>{{ backup_log.total }}</b></td></tr>
+                    </table>
+
+                    {% if backup_log.errors %}
+                    <div style="margin-top:10px; padding:5px; background:rgba(239, 68, 68, 0.1); border-left:3px solid var(--error);">
+                        <div style="font-weight:bold; color:var(--error); font-size:0.85em;">⚠️ ERRORES DETECTADOS:</div>
+                        {% for err in backup_log.errors[:3] %}
+                            <div style="font-size:0.8em; color:#fca5a5;">• {{ err }}</div>
+                        {% endfor %}
+                        {% if backup_log.errors|length > 3 %}
+                            <div style="font-size:0.8em; color:#fca5a5; font-style:italic;">(+{{ backup_log.errors|length - 3 }} más...)</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">💾 HISTORIAL DE BACKUPS</div>
+            <div style="height: 250px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>FECHA</th>
+                            <th>HORA</th>
+                            <th>EVENTO</th>
+                            <th>DETALLES</th>
+                            <th>R</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in backup_logs %}
+                        <tr>
+                            <td style="font-size:0.85em;">{{ log.timestamp.split(' ')[0] }}</td>
+                            <td>{{ log.timestamp.split(' ')[1] }}</td>
+                            <td style="font-weight:bold; color:{{ '#22c55e' if 'END' in log.action else '#60a5fa' }};">
+                                {{ 'INICIO' if 'START' in log.action else 'FIN' }}
+                            </td>
+                            <td style="font-size:0.85em;">{{ log.details }}</td>
+                            <td><span class="tag tag-{{ log.result }}">{{ log.result[0] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        setInterval(async () => {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                const box = document.getElementById('status-global');
+                const txt = document.getElementById('global-text');
+                if (data.global === 'ONLINE') { box.className = 'status-box status-online'; txt.innerText = 'ONLINE'; }
+                else { box.className = 'status-box status-offline'; txt.innerText = 'OFFLINE'; }
+                const modeText = document.getElementById('current-mode-text');
+                const btnFO = document.getElementById('btn-failover');
+                const btnFB = document.getElementById('btn-failback');
+                if (data.mode === 'READ_WRITE') {
+                    modeText.innerText = "ESCRITURA HABILITADA (EMERGENCIA)"; modeText.style.color = "var(--error)";
+                    btnFO.className = "btn-action btn-failover btn-active-rw"; btnFB.className = "btn-action btn-failback btn-inactive";
+                } else {
+                    modeText.innerText = "SOLO LECTURA (NORMAL)"; modeText.style.color = "var(--success)";
+                    btnFO.className = "btn-action btn-failover btn-inactive"; btnFB.className = "btn-action btn-failback btn-active-ro";
+                }
+            } catch (e) { }
+        }, 3000);
+        async function runAction(act) {
+            if (!confirm("¿Confirmar acción manual?")) return;
+            document.getElementById('console').innerHTML += `<div>> Enviando orden...</div>`;
+            try {
+                const res = await fetch('/api/action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: act }) });
+                const data = await res.json();
+                document.getElementById('console').innerHTML += `<div>> ${data.status}: ${data.output.substring(0, 50)}...</div>`;
+            } catch (e) { document.getElementById('console').innerHTML += `<div>> Error conexión.</div>`; }
+        }
+    </script>
+</body>
+</html>

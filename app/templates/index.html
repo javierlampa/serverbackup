@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PANEL SERVER</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #1e293b;
+            --text: #e2e8f0;
+            --accent: #38bdf8;
+            --success: #22c55e;
+            --error: #ef4444;
+            --used: #f43f5e;
+            --free: #10b981;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: var(--accent);
+        }
+
+        .btn-nav {
+            background: #334155;
+            color: white;
+            padding: 6px 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--panel);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+
+        .card-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 15px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .status-box {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+
+        .status-online {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .status-offline {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+            animation: pulse 2s infinite;
+        }
+
+        .network-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .network-mini-card {
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 6px;
+            padding: 10px;
+            border: 1px solid #334155;
+        }
+
+        .network-label {
+            font-size: 0.8em;
+            color: #94a3b8;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .network-value {
+            font-family: monospace;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .chart-container {
+            height: 100px;
+            position: relative;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .disks-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .disk-card {
+            background: #0f172a;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .pie-chart {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 10px auto;
+            background: conic-gradient(var(--used) 0% var(--p), var(--free) var(--p) 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pie-inner {
+            width: 80px;
+            height: 80px;
+            background: #0f172a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .disk-name {
+            font-size: 0.85em;
+            color: #94a3b8;
+            margin-bottom: 5px;
+            height: 35px;
+            overflow: hidden;
+        }
+
+        .disk-details {
+            font-size: 0.8em;
+            color: #cbd5e1;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            transition: 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .btn-inactive {
+            opacity: 0.4;
+            filter: grayscale(80%);
+        }
+
+        .btn-inactive:hover {
+            opacity: 0.8;
+            filter: grayscale(0%);
+        }
+
+        .btn-active-rw {
+            background-color: var(--error);
+            border-color: #fca5a5;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+            opacity: 1 !important;
+        }
+
+        .btn-active-ro {
+            background-color: var(--success);
+            border-color: #86efac;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+            opacity: 1 !important;
+        }
+
+        .btn-failover {
+            background: var(--error);
+        }
+
+        .btn-failback {
+            background: var(--success);
+        }
+
+        .log-console {
+            background: black;
+            color: #00ff00;
+            font-family: monospace;
+            padding: 10px;
+            height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+            border: 1px solid #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+        }
+
+        th {
+            text-align: left;
+            padding: 8px;
+            color: var(--accent);
+            border-bottom: 1px solid #334155;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .tag-SUCCESS {
+            background: var(--success);
+            color: black;
+        }
+
+        .tag-ERROR {
+            background: var(--error);
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>SISTEMA DE BACKUP DE SERVIDORES TELESOL V1.0</h1>
+        <div class="user-info">
+            Usuario: <b>{{ user }}</b>
+            {% if role == 'admin' %}
+            <a href="/admin/schedule" class="btn-nav" style="color:#f59e0b">⏱️ Horarios</a>
+            <a href="/admin/users" class="btn-nav">👥 Usuarios</a>
+            {% endif %}
+            <a href="#" onclick="showLog(); return false;" class="btn-nav">📜 Logs Full</a>
+            <a href="/logout" class="btn-nav" style="background: #ef4444;">Salir</a>
+        </div>
+    </div>
+    <div class="status-row">
+        <div id="status-global" class="status-box status-offline">
+            <h2>GLOBAL SERVER</h2>
+            <div id="global-text">CONECTANDO...</div>
+        </div>
+        <div class="status-box status-online">
+            <h2>EMERGENCIA</h2>
+            <div>ONLINE - MODO: <span id="current-mode-text">...</span></div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">💾 ESTADO DE ALMACENAMIENTO</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div>
+                <h3
+                    style="color: var(--accent); font-size: 0.9em; margin-bottom: 10px; text-align: center; border-bottom: 1px solid #334155; padding-bottom: 5px;">
+                    SERVER GLOBAL</h3>
+                <div class="disks-container" id="disks-global">
+                    <div style="padding:10px; color:#94a3b8; font-size: 0.8em;">Cargando...</div>
+                </div>
+            </div>
+            <div>
+                <h3
+                    style="color: var(--success); font-size: 0.9em; margin-bottom: 10px; text-align: center; border-bottom: 1px solid #334155; padding-bottom: 5px;">
+                    SERVER EMERGENCIA</h3>
+                <div class="disks-container" id="disks-emerg">
+                    <div style="padding:10px; color:#94a3b8; font-size: 0.8em;">Cargando...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- RENDIMIENTO DE RED -->
+    <div class="card" style="border-color: #f59e0b;">
+        <div class="card-title" style="color: #f59e0b;">📶 RENDIMIENTO DE RED (EN TIEMPO REAL)</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- GLOBAL SERVER NETWORK -->
+            <div>
+                <h3
+                    style="color: var(--accent); font-size: 0.8em; margin-bottom: 10px; text-align: center; opacity: 0.8;">
+                    SERVER GLOBAL</h3>
+                <div class="network-grid" id="net-global-container">
+                    <div class="network-mini-card">
+                        <div class="network-label">10Gb Mellanox <span id="speed-global-10g" class="network-value">0
+                                Mbps</span></div>
+                        <div class="chart-container"><canvas id="chart-global-10g"></canvas></div>
+                    </div>
+                    <div class="network-mini-card">
+                        <div class="network-label">1Gb Ethernet <span id="speed-global-1g" class="network-value">0
+                                Mbps</span></div>
+                        <div class="chart-container"><canvas id="chart-global-1g"></canvas></div>
+                    </div>
+                </div>
+            </div>
+            <!-- EMERGENCY SERVER NETWORK -->
+            <div>
+                <h3
+                    style="color: var(--success); font-size: 0.8em; margin-bottom: 10px; text-align: center; opacity: 0.8;">
+                    SERVER EMERGENCIA</h3>
+                <div class="network-grid" id="net-emerg-container">
+                    <div class="network-mini-card">
+                        <div class="network-label">10Gb Mellanox <span id="speed-emerg-10g" class="network-value">0
+                                Mbps</span></div>
+                        <div class="chart-container"><canvas id="chart-emerg-10g"></canvas></div>
+                    </div>
+                    <div class="network-mini-card">
+                        <div class="network-label">1Gb Ethernet <span id="speed-emerg-1g" class="network-value">0
+                                Mbps</span></div>
+                        <div class="chart-container"><canvas id="chart-emerg-1g"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-title">⚡ MODOS DE OPERACIÓN</div>
+            <button id="btn-failover" onclick="runAction('failover')" class="btn-action btn-failover btn-inactive">
+                FORZAR MODO EMERGENCIA (ESCRITURA)
+                <div style="font-size:0.7em; margin-top:5px; font-weight:normal;">Úsalo si Global Cae para empezar a
+                    trabajar aquí</div>
+            </button>
+            <button id="btn-failback" onclick="runAction('failback')" class="btn-action btn-failback btn-inactive">
+                RESTAURAR A NORMALIDAD (LECTURA)
+                <div style="font-size:0.7em; margin-top:5px; font-weight:normal;">* Se ejecutará AUTOMÁTICAMENTE si
+                    Global vuelve</div>
+            </button>
+            <div id="console" class="log-console">Esperando evento...</div>
+        </div>
+        <div class="card" style="border-color:#eab308;">
+            <div class="card-title" style="color:#eab308;">🚀 ACCIONES RÁPIDAS</div>
+            <p style="margin:0 0 10px 0; color:#cbd5e1;">Ejecución remota de backup sin esperar horario.</p>
+            <form action="/admin/run_backup" method="POST">
+                <label style="color:#94a3b8; display:block; margin-bottom:5px;">Password Admin (Server Global):</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="password" name="admin_pass_run"
+                        style="flex:1; padding:8px; background:#0f172a; border:1px solid #334155; color:white; border-radius:4px;"
+                        required placeholder="••••">
+                    <button type="submit" name="run_now" value="1" class="btn-action"
+                        style="width:auto; padding:8px 15px; margin:0; background:#eab308; color:black; font-size:1em;">▶
+                        Ejecutar</button>
+                </div>
+            </form>
+        </div>
+        <div class="card">
+            <div class="card-title">🛡️ ULTIMOS EVENTOS</div>
+            <div style="height: 250px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>HORA</th>
+                            <th>ACCIÓN</th>
+                            <th>R</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.timestamp.split(' ')[1] }}</td>
+                            <td>{{ log.action }}</td>
+                            <td><span class="tag tag-{{ log.result }}">{{ log.result[0] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card" style="border-color: #3b82f6;">
+            <div class="card-title" style="color: #3b82f6;">📊 RESUMEN ROBOCOPY (GLOBAL)</div>
+            <div style="min-height: 250px;">
+                {% if backup_log.status == 'ERROR' or backup_log.status == 'NOT_FOUND' %}
+                <div style="color:var(--error); padding:20px; text-align:center;">
+                    <div style="font-size:2em; margin-bottom:10px;">⚠️</div>
+                    {{ backup_log.msg }}
+                </div>
+                {% else %}
+                <div
+                    style="display:flex; justify-content:space-between; align-items: center; margin-bottom:15px; padding:10px; background:rgba(15, 23, 42, 0.5); border-radius:6px;">
+                    <div>
+                        <div style="font-size:0.75em; color:#94a3b8; text-transform:uppercase;">Inicio</div>
+                        <div style="font-family:monospace; font-size:1.1em;">{{ backup_log.start }}</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size:0.75em; color:#94a3b8; text-transform:uppercase; margin-bottom: 4px;">
+                            Estado</div>
+                        {% if backup_log.status == 'FINISHED' %}
+                        <span
+                            style="background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; border: 1px solid rgba(34, 197, 94, 0.3);">TERMINADO</span>
+                        {% else %}
+                        <span
+                            style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; border: 1px solid rgba(59, 130, 246, 0.3);">EN
+                            PROGRESO</span>
+                        {% endif %}
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.75em; color:#94a3b8; text-transform:uppercase;">Fin</div>
+                        <div style="font-family:monospace; font-size:1.1em;">{{ backup_log.end }}</div>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="color:#94a3b8;">METRICA</th>
+                            <th style="text-align:right; color:#e2e8f0;">CANTIDAD</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Archivos Copiados</td>
+                            <td style="text-align:right; color:var(--success); font-weight:bold;">{{ backup_log.copied
+                                }}</td>
+                        </tr>
+                        <tr>
+                            <td>Archivos Fallidos</td>
+                            <td style="text-align:right; color:var(--error); font-weight:bold;">{{ backup_log.failed }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Ya sincronizados (En destino)</td>
+                            <td style="text-align:right; color:#94a3b8;">{{ backup_log.skipped }}</td>
+                        </tr>
+                        <tr style="border-top:2px solid #334155;">
+                            <td style="font-weight:bold; color:white;">TOTAL PROCESADO</td>
+                            <td style="text-align:right; font-weight:bold; color:white;">{{ backup_log.total }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style="margin-top:15px;">
+                    <div style="font-size:0.75em; color:#94a3b8; text-transform:uppercase; margin-bottom:5px;">📄
+                        Actividad de Archivos (Últimos)</div>
+                    <div class="activity-log"
+                        style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; max-height: 150px; overflow-y: auto; color: #94a3b8; border: 1px solid #334155;">
+                        {% if backup_log.recent_activity %}
+                        {% for line in backup_log.recent_activity %}
+                        <div
+                            style="white-space: pre-wrap; margin-bottom: 2px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px;">
+                            {{ line }}</div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="text-muted" style="text-align:center; padding:10px;">Esperando actividad...</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if backup_log.errors %}
+                <div
+                    style="margin-top:15px; padding:10px; background:rgba(239, 68, 68, 0.1); border:1px solid rgba(239, 68, 68, 0.3); border-radius:6px;">
+                    <div
+                        style="font-weight:bold; color:var(--error); font-size:0.9em; margin-bottom:5px; display:flex; align-items:center gap:5px;">
+                        <span>⚠️ ERRORES DETECTADOS</span>
+                    </div>
+                    <div style="max-height:100px; overflow-y:auto; font-family:monospace; font-size:0.85em;">
+                        {% for err in backup_log.errors %}
+                        <div
+                            style="color:#fca5a5; margin-bottom:2px; padding-bottom:2px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                            • {{ err }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">💾 HISTORIAL DE BACKUPS</div>
+            <div style="height: 250px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>FECHA</th>
+                            <th>HORA</th>
+                            <th>EVENTO</th>
+                            <th>DETALLES</th>
+                            <th>R</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in backup_logs %}
+                        <tr>
+                            <td style="font-size:0.85em;">{{ log.timestamp.split(' ')[0] }}</td>
+                            <td>{{ log.timestamp.split(' ')[1] }}</td>
+                            <td style="font-weight:bold; color:{{ '#22c55e' if 'END' in log.action else '#60a5fa' }};">
+                                {{ 'INICIO' if 'START' in log.action else 'FIN' }}
+                            </td>
+                            <td style="font-size:0.85em;">{{ log.details }}</td>
+                            <td><span class="tag tag-{{ log.result }}">{{ log.result[0] }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="logModal" class="modal"
+        style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.8);">
+        <div class="modal-content"
+            style="background-color:#1e293b; margin:5% auto; padding:20px; border:1px solid #475569; width:80%; max-width:900px; border-radius:8px; color:white;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <h2 style="margin:0; font-size:1.2rem;">📜 Log Robocopy (Últimas 1000 líneas)</h2>
+                    <a href="/api/download_log" target="_blank"
+                        style="background:#3b82f6; color:white; text-decoration:none; padding:4px 10px; border-radius:4px; font-size:0.8rem; font-weight:bold;">
+                        💾 Descargar
+                    </a>
+                </div>
+                <span onclick="document.getElementById('logModal').style.display='none'"
+                    style="color:#cbd5e1; font-size:28px; font-weight:bold; cursor:pointer;">&times;</span>
+            </div>
+            <pre id="logContent"
+                style="background:#0f172a; padding:15px; border-radius:4px; overflow-x:auto; max-height:600px; font-family:monospace; font-size:0.85rem; color:#e2e8f0; white-space:pre-wrap;"></pre>
+        </div>
+    </div>
+
+    <script>
+        function showLog() {
+            const modal = document.getElementById('logModal');
+            const content = document.getElementById('logContent');
+            content.innerText = "Cargando log...";
+            modal.style.display = "block";
+
+            fetch('/api/view_log')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'ok') {
+                        content.innerText = data.content;
+                    } else {
+                        content.innerText = "Error cargando log: " + data.content;
+                    }
+                })
+                .catch(err => {
+                    content.innerText = "Error de conexión";
+                });
+        }
+
+        // Cerrar al clickear afuera
+        window.onclick = function (event) {
+            const modal = document.getElementById('logModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+    <script>
+        async function updateDisks() {
+            try {
+                const res = await fetch('/api/disks');
+                const disks = await res.json();
+
+                const gridGlobal = document.getElementById('disks-global');
+                const gridEmerg = document.getElementById('disks-emerg');
+
+                gridGlobal.innerHTML = '';
+                gridEmerg.innerHTML = '';
+
+                if (Object.keys(disks).length === 0) {
+                    gridGlobal.innerHTML = '<div style="color:var(--error); font-size:0.8em;">No se detectaron discos</div>';
+                    return;
+                }
+
+                // Ordenar: ARCHIVOS primero, luego EDICION (Manejando casos OFFLINE)
+                const diskArray = Object.entries(disks).sort((a, b) => {
+                    const funcA = a[1].func || "";
+                    const funcB = b[1].func || "";
+                    if (funcA === "ARCHIVOS" && funcB !== "ARCHIVOS") return -1;
+                    if (funcA !== "ARCHIVOS" && funcB === "ARCHIVOS") return 1;
+                    return 0;
+                });
+
+                for (const [name, disk] of diskArray) {
+                    const card = document.createElement('div');
+                    card.className = 'disk-card';
+
+                    if (disk.status === 'OK') {
+                        card.innerHTML = `
+                            <div class="disk-name" style="color:var(--accent); font-weight:bold; margin-bottom:5px;">
+                                ${disk.func} <span style="color:#94a3b8; font-size:0.8em; font-weight:normal;">(${disk.drive})</span>
+                            </div>
+                            <div class="pie-chart" style="--p: ${disk.percent}%;">
+                                <div class="pie-inner">${disk.percent}%</div>
+                            </div>
+                            <div class="disk-details" style="font-size:0.9em; margin-top:10px;">
+                                <div style="color:#10b981; font-weight:bold;">${disk.free} disponibles</div>
+                                <div style="color:#94a3b8; font-size:0.85em;">de ${disk.total}</div>
+                            </div>
+                        `;
+                    } else {
+                        card.innerHTML = `
+                            <div class="disk-name" style="color:var(--error);">${name}</div>
+                            <div style="height:80px; display:flex; align-items:center; justify-content:center; color:var(--error); font-size:0.8em; border:1px dashed var(--error); border-radius:8px; margin-top:10px;">
+                                SIN CONEXIÓN
+                            </div>
+                        `;
+                    }
+
+                    if (disk.server === "Global") gridGlobal.appendChild(card);
+                    else gridEmerg.appendChild(card);
+                }
+            } catch (e) { console.error("Error cargando discos", e); }
+        }
+
+        // Cargar discos al inicio y cada 60 seg (es una operacion pesada)
+        updateDisks();
+        setInterval(updateDisks, 60000);
+
+        setInterval(async () => {
+            try {
+                const res = await fetch('/api/status');
+                const data = await res.json();
+                const box = document.getElementById('status-global');
+                const txt = document.getElementById('global-text');
+                if (data.global === 'ONLINE') { box.className = 'status-box status-online'; txt.innerText = 'ONLINE'; }
+                else { box.className = 'status-box status-offline'; txt.innerText = 'OFFLINE'; }
+                const modeText = document.getElementById('current-mode-text');
+                const btnFO = document.getElementById('btn-failover');
+                const btnFB = document.getElementById('btn-failback');
+                if (data.mode === 'READ_WRITE') {
+                    modeText.innerText = "ESCRITURA HABILITADA (EMERGENCIA)"; modeText.style.color = "var(--error)";
+                    btnFO.className = "btn-action btn-failover btn-active-rw"; btnFB.className = "btn-action btn-failback btn-inactive";
+                } else {
+                    modeText.innerText = "SOLO LECTURA (NORMAL)"; modeText.style.color = "var(--success)";
+                    btnFO.className = "btn-action btn-failover btn-inactive"; btnFB.className = "btn-action btn-failback btn-active-ro";
+                }
+            } catch (e) { }
+        }, 3000);
+        async function runAction(act) {
+            if (!confirm("¿Confirmar acción manual?")) return;
+            document.getElementById('console').innerHTML += `<div>> Enviando orden...</div>`;
+            try {
+                const res = await fetch('/api/action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: act }) });
+                const data = await res.json();
+                document.getElementById('console').innerHTML += `<div>> ${data.status}: ${data.output.substring(0, 50)}...</div>`;
+            } catch (e) { document.getElementById('console').innerHTML += `<div>> Error conexión.</div>`; }
+        }
+
+        // --- MONITOREO DE RED ---
+        const netCharts = {};
+        const netData = {
+            'global-10g': { labels: Array(60).fill(''), send: Array(60).fill(0), recv: Array(60).fill(0) },
+            'global-1g': { labels: Array(60).fill(''), send: Array(60).fill(0), recv: Array(60).fill(0) },
+            'emerg-10g': { labels: Array(60).fill(''), send: Array(60).fill(0), recv: Array(60).fill(0) },
+            'emerg-1g': { labels: Array(60).fill(''), send: Array(60).fill(0), recv: Array(60).fill(0) }
+        };
+
+        function initNetChart(id) {
+            if (typeof Chart === 'undefined') return null;
+            const el = document.getElementById(`chart-${id}`);
+            if (!el) return null;
+            const ctx = el.getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: netData[id].labels,
+                    datasets: [
+                        { label: 'Subida', data: netData[id].send, borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)', fill: true, tension: 0.4, borderWidth: 1, pointRadius: 0 },
+                        { label: 'Bajada', data: netData[id].recv, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, borderWidth: 1, pointRadius: 0 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } }
+                    },
+                    animation: false
+                }
+            });
+        }
+
+        netCharts['global-10g'] = initNetChart('global-10g');
+        netCharts['global-1g'] = initNetChart('global-1g');
+        netCharts['emerg-10g'] = initNetChart('emerg-10g');
+        netCharts['emerg-1g'] = initNetChart('emerg-1g');
+
+        function formatBps(bps) {
+            if (isNaN(bps) || bps < 0) return "0 bps";
+            if (bps < 1000) return bps + " bps";
+            if (bps < 1000000) return (bps / 1024).toFixed(1) + " Kbps";
+            return (bps / 1048576).toFixed(1) + " Mbps";
+        }
+
+        let isNetUpdating = false;
+        async function updateNetwork() {
+            if (isNetUpdating) return;
+            isNetUpdating = true;
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
+                const res = await fetch('/api/network', { signal: controller.signal });
+                clearTimeout(timeoutId);
+                const data = await res.json();
+
+                const processServer = (srvName, prefix) => {
+                    if (!data[srvName]) return;
+                    data[srvName].forEach(adapter => {
+                        let type = "";
+                        const name = adapter.name.toLowerCase();
+                        if (name.includes("mellanox") || name.includes("ethernet 2") || name.includes("10g")) type = "10g";
+                        else type = "1g";
+
+                        const key = `${prefix}-${type}`;
+                        if (netCharts[key]) {
+                            document.getElementById(`speed-${key}`).innerText = formatBps(adapter.sent_bps + adapter.recv_bps);
+                            const d = netData[key];
+                            d.send.push(adapter.sent_bps || 0); d.send.shift();
+                            d.recv.push(adapter.recv_bps || 0); d.recv.shift();
+                            netCharts[key].update('none');
+                        }
+                    });
+                };
+
+                processServer('global', 'global');
+                processServer('emergency', 'emerg');
+            } catch (e) { console.error("Error red", e); }
+            finally { isNetUpdating = false; }
+        }
+
+        setInterval(updateNetwork, 3000);
+        updateNetwork();
+    </script>
+</body>
+
+</html>

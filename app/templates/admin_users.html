@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Configuración de Usuarios</title>
+    <style>
+        body {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 40px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid #334155;
+        }
+        h2 {
+            color: #38bdf8;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th {
+            text-align: left;
+            color: #38bdf8;
+            padding: 10px;
+            border-bottom: 2px solid #334155;
+        }
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #334155;
+        }
+        input {
+            padding: 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: white;
+            border-radius: 4px;
+            display: block;
+            width: 95%;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #38bdf8;
+            color: black;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: 0.3s;
+        }
+        button:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        .delete-btn {
+            background: #ef4444;
+            color: white;
+            padding: 5px 10px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/dashboard" class="back-link">← Volver al Dashboard</a>
+        <div class="card">
+            <h2>Crear Nuevo Operador</h2>
+            <form method="POST">
+                <input type="text" name="new_username" placeholder="Nombre de Usuario" required autocomplete="off">
+                <input type="password" name="new_password" placeholder="Contraseña Segura" required>
+                <button type="submit">Crear Usuario</button>
+            </form>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div
+                style="margin-top: 15px; padding: 10px; border-radius: 4px; background: {{ 'rgba(34, 197, 94, 0.2)' if category=='success' else 'rgba(239, 68, 68, 0.2)' }}; color: {{ '#22c55e' if category=='success' else '#ef4444' }}">
+                {{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+        <div class="card" style="margin-top: 30px;">
+            <h2>Usuarios Activos</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Usuario</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td style="font-weight:bold;">{{ user.username }}</td>
+                        <td><span
+                                style="background: #334155; padding: 2px 8px; border-radius: 10px; font-size:0.8em;">{{
+                                user.role }}</span></td>
+                        <td>
+                            <button onclick="openChangePasswordModal({{ user.id }}, '{{ user.username }}')"
+                                style="background:#f59e0b; margin-right:5px; padding:5px 10px; font-size:0.8em;">Cambiar
+                                Contraseña</button>
+                            {% if user.role != 'admin' %}
+                            <a href="/admin/users/delete/{{ user.id }}" class="delete-btn"
+                                onclick="return confirm('¿Eliminar usuario?')">Eliminar</a>
+                            {% else %}
+                            <span style="color:#64748b; font-size:0.8em;">Protegido</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Modal para cambiar contraseña -->
+    <div id="passwordModal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000;">
+        <div
+            style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:#1e293b; padding:30px; border-radius:10px; border:1px solid #334155; min-width:400px;">
+            <h3 style="color:#38bdf8; margin-top:0;">Cambiar Contraseña</h3>
+            <p style="color:#94a3b8; margin-bottom:20px;">Usuario: <strong id="modalUsername"></strong></p>
+            <form id="passwordForm" method="POST" action="">
+                <input type="password" name="new_password" placeholder="Nueva Contraseña" required
+                    style="width:93%; margin-bottom:15px;">
+                <input type="password" name="confirm_password" placeholder="Confirmar Contraseña" required
+                    style="width:93%; margin-bottom:20px;">
+                <button type="submit" style="margin-right:10px;">Guardar</button>
+                <button type="button" onclick="closePasswordModal()" style="background:#64748b;">Cancelar</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        function openChangePasswordModal(userId, username) {
+            document.getElementById('modalUsername').textContent = username;
+            document.getElementById('passwordForm').action = '/admin/users/change_password/' + userId;
+            document.getElementById('passwordModal').style.display = 'block';
+        }
+        function closePasswordModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('passwordForm').reset();
+        }
+    </script>
+</body>
+</html>

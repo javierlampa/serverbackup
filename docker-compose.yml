@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  panelserver:
+    build: .
+    container_name: panelserver
+    restart: always
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./panel_data.db:/app/panel_data.db
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+    # Red en modo host si tienes problemas de visibilidad con WinRM
+    # network_mode: "host"

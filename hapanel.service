@@ -1,0 +1,13 @@
+[Unit]
+Description=Servicio Panel HA - Flask App
+After=network.target
+
+[Service]
+User=edictos
+WorkingDirectory=/home/edictos/servers
+Environment="PATH=/home/edictos/servers/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/home/edictos/servers/venv/bin/python3 run.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
