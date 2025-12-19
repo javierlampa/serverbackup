@@ -4,10 +4,7 @@ __pycache__/
 instance/
 *.log
 panel_data.db
-PARA_SERVER_EMERGENCIA/
-PARA_SERVER_GLOBAL/
-backups/
-en el serverglobal/
+Backup_Robocopy.log
 journal_debug.txt
 .env
 .DS_Store
