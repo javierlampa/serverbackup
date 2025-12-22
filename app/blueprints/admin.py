@@ -124,14 +124,14 @@ def parse_remote_xml(xml_string):
 # --- FAILOVER METHODS ---
 def execute_failover_logic(u="SYSTEM"):
     try:
-        log_audit("FAILOVER_START", "Iniciando secuencia de Emergencia...", "ALERTA", u)
+        log_audit("EMERGENCIA_ACTIVANDO", "Iniciando secuencia de Emergencia...", "ALERTA", u)
         executor = RemoteExecutor(current_app.config['EMERGENCY_SERVER_IP'])
         # Asumimos que el script existe en el remoto
         ps_command = fr'& "{current_app.config["REMOTE_SCRIPTS_DIR"]}\trigger_failover.ps1"'
         success, output = executor.run_ps_command(ps_command)
         if success:
             set_current_mode("READ_WRITE")
-            log_audit("FAILOVER_SUCCESS", "Escritura Habilitada en Emergencia.", "SUCCESS", u)
+            log_audit("EMERGENCIA_ACTIVA", "Escritura Habilitada en Emergencia.", "SUCCESS", u)
             return True, output
         else:
             log_audit("FAILOVER_FAIL", f"Error Remoto: {output}", "ERROR", u)
@@ -140,13 +140,13 @@ def execute_failover_logic(u="SYSTEM"):
 
 def execute_failback_logic(u="SYSTEM"):
     try:
-        log_audit("FAILBACK_START", "Iniciando Restauracion...", "INFO", u)
+        log_audit("EMERGENCIA_DESACTIVANDO", "Iniciando Restauracion...", "INFO", u)
         executor = RemoteExecutor(current_app.config['EMERGENCY_SERVER_IP'])
         ps_command = fr'& "{current_app.config["REMOTE_SCRIPTS_DIR"]}\trigger_failback.ps1"'
         success, output = executor.run_ps_command(ps_command)
         if success:
             set_current_mode("READ_ONLY")
-            log_audit("FAILBACK_SUCCESS", "Datos restaurados a Global.", "SUCCESS", u)
+            log_audit("EMERGENCIA_INACTIVA", "Datos restaurados a Global.", "SUCCESS", u)
             return True, output
         else:
             log_audit("FAILBACK_FAIL", f"Error Remoto: {output}", "ERROR", u)
@@ -282,7 +282,7 @@ def schedule():
                     panel_ip = current_app.config['PANEL_IP']
                     # Usamos -UseBasicParsing para evitar problemas con IE
                     ps_script = f"""
-                    $url = "http://{panel_ip}:5000/static/pending_task.xml"
+                    $url = "http://{panel_ip}:5001/static/pending_task.xml"
                     Invoke-WebRequest -Uri $url -OutFile "C:\\Windows\\Temp\\ha_task_import.xml" -UseBasicParsing
                     schtasks /Create /XML "C:\\Windows\\Temp\\ha_task_import.xml" /TN "{task_name}" /F
                     """

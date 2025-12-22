@@ -63,13 +63,13 @@ def api_backup_event():
     action = data.get('action')
     details = data.get('details', '')
     
-    if action not in ['BACKUP_START', 'BACKUP_END']:
+    if action not in ['BACKUP_START', 'BACKUP_END', 'SINCRONIZACION_INICIADA', 'SINCRONIZACION_FINALIZADA', 'BACKUP_AUTOMATICO_INICIADO', 'BACKUP_AUTOMATICO_FINALIZADO']:
         return jsonify({"error": "Invalid action"}), 400
     
     # Usar el resultado enviado o inferir uno por defecto
     result = data.get('result')
     if not result:
-        result = 'INFO' if action == 'BACKUP_START' else 'SUCCESS'
+        result = 'INFO' if action == 'BACKUP_AUTOMATICO_INICIADO' else 'SUCCESS'
     
     # REGISTRAR EVENTO
     log_audit(action, details, result, u="SERVERGLOBAL")

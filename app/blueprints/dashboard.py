@@ -34,7 +34,7 @@ def format_size(size_bytes):
 @login_required
 def index():
     db = get_db()
-    logs = db.execute("SELECT * FROM audit_logs ORDER BY timestamp DESC LIMIT 10").fetchall()
+    logs = db.execute("SELECT * FROM audit_logs WHERE action != 'MONITOR_START' ORDER BY id DESC LIMIT 10").fetchall()
     backup_logs = db.execute("SELECT * FROM audit_logs WHERE action LIKE '%BACKUP%' ORDER BY timestamp DESC LIMIT 10").fetchall()
     
     disks = {} # Se cargan vía API ahora
