@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
-from models.prestamo import Loan
-from models.producto import Product
-from models.movimiento_stock import StockMovement
+from models.prestamo import Prestamo
+from models.producto import Producto
+from models.movimiento_stock import MovimientoStock
 from datetime import datetime
 
 prestamos_bp = Blueprint('prestamos', __name__, url_prefix='/prestamos')
@@ -11,7 +11,7 @@ prestamos_bp = Blueprint('prestamos', __name__, url_prefix='/prestamos')
 @prestamos_bp.route('/')
 @login_required
 def index():
-    loans = Loan.query.order_by(Loan.loan_date.desc()).all()
+    loans = Prestamo.query.order_by(Prestamo.loan_date.desc()).all()
     return render_template('prestamos/index.html', loans=loans)
 
 @prestamos_bp.route('/create', methods=['GET', 'POST'])
@@ -26,7 +26,7 @@ def create():
         notes = request.form.get('notes')
         signature = request.form.get('signature') # Base64 string
         
-        product = Product.query.get_or_404(product_id)
+        product = Producto.query.get_or_404(product_id)
         
         if product.current_stock <= 0:
             flash('No hay stock disponible para realizar el préstamo.', 'danger')
@@ -40,7 +40,7 @@ def create():
         if expected_return_date_str:
             expected_return_date = datetime.strptime(expected_return_date_str, '%Y-%m-%d').date()
             
-        loan = Loan(
+        loan = Prestamo(
             product_id=product_id,
             borrower_name=borrower_name,
             borrower_contact=borrower_contact,
@@ -56,7 +56,7 @@ def create():
         product.current_stock -= 1
         
         # Registrar movimiento de stock
-        movement = StockMovement(
+        movement = MovimientoStock(
             product_id=product_id,
             user_id=current_user.id,
             movement_type='exit',
@@ -72,13 +72,13 @@ def create():
         flash('Préstamo registrado correctamente.', 'success')
         return redirect(url_for('prestamos.index'))
         
-    products = Product.query.filter(Product.current_stock > 0).all()
+    products = Producto.query.filter(Producto.current_stock > 0).all()
     return render_template('prestamos/create.html', products=products)
 
 @prestamos_bp.route('/return/<int:id>', methods=['POST'])
 @login_required
 def return_loan(id):
-    loan = Loan.query.get_or_404(id)
+    loan = Prestamo.query.get_or_404(id)
     
     if loan.status == 'returned':
         flash('Este préstamo ya fue devuelto.', 'warning')
@@ -88,11 +88,11 @@ def return_loan(id):
     loan.return_date = datetime.utcnow()
     
     # Actualizar stock del producto
-    product = loan.product
+    product = loan.producto
     product.current_stock += 1
     
     # Registrar movimiento de stock
-    movement = StockMovement(
+    movement = MovimientoStock(
         product_id=product.id,
         user_id=current_user.id,
         movement_type='entry',

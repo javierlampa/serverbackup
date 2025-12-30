@@ -1,8 +1,8 @@
 from app import db
 from datetime import datetime
 
-class Product(db.Model):
-    __tablename__ = 'products'
+class Producto(db.Model):
+    __tablename__ = 'productos'
 
     id = db.Column(db.Integer, primary_key=True)
     code = db.Column(db.String(50), unique=True, nullable=False)
@@ -31,15 +31,15 @@ class Product(db.Model):
     notes = db.Column(db.Text)
     
     # Foreign Keys
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'))
-    supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'))
+    category_id = db.Column(db.Integer, db.ForeignKey('categorias.id'))
+    supplier_id = db.Column(db.Integer, db.ForeignKey('proveedores.id'))
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relaciones
-    movements = db.relationship('StockMovement', backref='product', lazy='dynamic')
-    loans = db.relationship('Loan', backref='product', lazy='dynamic')
+    movimientos = db.relationship('MovimientoStock', backref='producto', lazy='dynamic')
+    prestamos = db.relationship('Prestamo', backref='producto', lazy='dynamic')
     # Nota: La relación con compras se maneja a través de PurchaseItem.product
 
     def to_dict(self):

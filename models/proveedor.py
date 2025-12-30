@@ -1,8 +1,8 @@
 from app import db
 from datetime import datetime
 
-class Supplier(db.Model):
-    __tablename__ = 'suppliers'
+class Proveedor(db.Model):
+    __tablename__ = 'proveedores'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -14,8 +14,8 @@ class Supplier(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relaciones
-    products = db.relationship('Product', backref='supplier', lazy='dynamic')
-    # La relación con compras se define en el modelo Purchase
+    productos = db.relationship('Producto', backref='proveedor', lazy='dynamic')
+    # La relación con compras se define en el modelo Compra
 
     def to_dict(self):
         return {

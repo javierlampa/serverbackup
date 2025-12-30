@@ -1,12 +1,11 @@
 from app import db
-from datetime import datetime
 
-class PurchaseItem(db.Model):
-    __tablename__ = 'purchase_items'
+class ItemCompra(db.Model):
+    __tablename__ = 'items_compra'
 
     id = db.Column(db.Integer, primary_key=True)
-    purchase_id = db.Column(db.Integer, db.ForeignKey('purchases.id'), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    purchase_id = db.Column(db.Integer, db.ForeignKey('compras.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('productos.id'), nullable=False)
     
     quantity = db.Column(db.Integer, nullable=False)
     unit_price = db.Column(db.Numeric(10, 2), nullable=False)
@@ -16,13 +15,13 @@ class PurchaseItem(db.Model):
     total_with_vat = db.Column(db.Numeric(10, 2), nullable=False)
     
     # Relaciones
-    product = db.relationship('Product', backref=db.backref('purchase_items', lazy='dynamic'))
+    producto = db.relationship('Producto', backref=db.backref('items_compra', lazy='dynamic'))
 
     def to_dict(self):
         return {
             'id': self.id,
             'product_id': self.product_id,
-            'product_name': self.product.name,
+            'product_name': self.producto.name,
             'quantity': self.quantity,
             'unit_price': str(self.unit_price),
             'total_without_vat': str(self.total_without_vat),

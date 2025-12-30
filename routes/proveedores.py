@@ -1,14 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required
 from app import db
-from models.proveedor import Supplier
+from models.proveedor import Proveedor
 
 proveedores_bp = Blueprint('proveedores', __name__, url_prefix='/proveedores')
 
 @proveedores_bp.route('/')
 @login_required
 def index():
-    suppliers = Supplier.query.all()
+    suppliers = Proveedor.query.all()
     return render_template('proveedores/index.html', suppliers=suppliers)
 
 @proveedores_bp.route('/add', methods=['POST'])
@@ -27,7 +27,7 @@ def add():
         flash('El nombre de la empresa es obligatorio', 'danger')
         return redirect(url_for('proveedores.index'))
         
-    new_supplier = Supplier(
+    new_supplier = Proveedor(
         name=name,
         cuit=cuit,
         contact_name=contact_name,
@@ -49,7 +49,7 @@ def add():
 @proveedores_bp.route('/edit/<int:id>', methods=['POST'])
 @login_required
 def edit(id):
-    supplier = Supplier.query.get_or_404(id)
+    supplier = Proveedor.query.get_or_404(id)
     supplier.name = request.form.get('name')
     supplier.cuit = request.form.get('cuit')
     supplier.contact_name = request.form.get('contact_name')
@@ -64,10 +64,10 @@ def edit(id):
 @proveedores_bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
-    supplier = Supplier.query.get_or_404(id)
+    supplier = Proveedor.query.get_or_404(id)
     
     # Verificar si tiene productos asociados
-    if supplier.products.count() > 0:
+    if supplier.productos.count() > 0:
         flash('No se puede eliminar: tiene productos asociados', 'danger')
         return redirect(url_for('proveedores.index'))
         

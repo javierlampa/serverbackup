@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required
 from app import db
-from models.producto import Product
-from models.categoria import Category
-from models.proveedor import Supplier
+from models.producto import Producto
+from models.categoria import Categoria
+from models.proveedor import Proveedor
 from utils.qr_generator import generate_qr_code
 from datetime import datetime
 import os
@@ -19,7 +19,7 @@ def index():
     supplier_id = request.args.get('supplier_id', type=int)
     
     # Base query
-    query = Product.query
+    query = Producto.query
     
     # Apply filters
     if category_id:
@@ -30,11 +30,11 @@ def index():
         query = query.filter_by(supplier_id=supplier_id)
     
     # Get all products
-    products = query.order_by(Product.name).all()
+    products = query.order_by(Producto.name).all()
     
     # Get all categories and suppliers for filters
-    categories = Category.query.order_by(Category.name).all()
-    suppliers = Supplier.query.order_by(Supplier.name).all()
+    categories = Categoria.query.order_by(Categoria.name).all()
+    suppliers = Proveedor.query.order_by(Proveedor.name).all()
     
     return render_template('productos/index.html', 
                          products=products,
@@ -67,20 +67,20 @@ def add():
         return redirect(url_for('productos.index'))
     
     # Check if code already exists
-    existing = Product.query.filter_by(code=code).first()
+    existing = Producto.query.filter_by(code=code).first()
     if existing:
         flash('Ya existe un producto con ese código', 'warning')
         return redirect(url_for('productos.index'))
     
     # Check if serial number already exists (if provided)
     if serial_number:
-        existing_serial = Product.query.filter_by(serial_number=serial_number).first()
+        existing_serial = Producto.query.filter_by(serial_number=serial_number).first()
         if existing_serial:
             flash('Ya existe un producto con ese número de serie', 'warning')
             return redirect(url_for('productos.index'))
     
     # Create product
-    new_product = Product(
+    new_product = Producto(
         code=code,
         name=name,
         description=description,
@@ -114,7 +114,7 @@ def add():
 @productos_bp.route('/edit/<int:id>', methods=['POST'])
 @login_required
 def edit(id):
-    product = Product.query.get_or_404(id)
+    product = Producto.query.get_or_404(id)
     
     code = request.form.get('code')
     name = request.form.get('name')
@@ -125,7 +125,7 @@ def edit(id):
     
     # Check if code is being changed and if new code already exists
     if code != product.code:
-        existing = Product.query.filter_by(code=code).first()
+        existing = Producto.query.filter_by(code=code).first()
         if existing:
             flash('Ya existe un producto con ese código', 'warning')
             return redirect(url_for('productos.index'))
@@ -133,7 +133,7 @@ def edit(id):
     # Check serial number
     serial_number = request.form.get('serial_number')
     if serial_number and serial_number != product.serial_number:
-        existing_serial = Product.query.filter_by(serial_number=serial_number).first()
+        existing_serial = Producto.query.filter_by(serial_number=serial_number).first()
         if existing_serial:
             flash('Ya existe un producto con ese número de serie', 'warning')
             return redirect(url_for('productos.index'))
@@ -172,10 +172,10 @@ def edit(id):
 @productos_bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
-    product = Product.query.get_or_404(id)
+    product = Producto.query.get_or_404(id)
     
     # Check if product has movements
-    if product.movements.count() > 0:
+    if product.movimientos.count() > 0:
         flash('No se puede eliminar: tiene movimientos de stock asociados', 'danger')
         return redirect(url_for('productos.index'))
     
@@ -196,7 +196,7 @@ def delete(id):
 @productos_bp.route('/download-qr/<int:id>')
 @login_required
 def download_qr(id):
-    product = Product.query.get_or_404(id)
+    product = Producto.query.get_or_404(id)
     
     if not product.qr_code_path:
         flash('Este producto no tiene código QR generado', 'warning')

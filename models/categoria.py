@@ -1,18 +1,18 @@
 from app import db
 
-class Category(db.Model):
-    __tablename__ = 'categories'
+class Categoria(db.Model):
+    __tablename__ = 'categorias'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
     description = db.Column(db.String(200))
     color = db.Column(db.String(7), default='#3b82f6')  # Hex color for UI badges
     icon = db.Column(db.String(50), default='box')      # Icon name (e.g., FontAwesome)
-    parent_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
+    parent_id = db.Column(db.Integer, db.ForeignKey('categorias.id'), nullable=True)
     
     # Relaciones
-    children = db.relationship('Category', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
-    products = db.relationship('Product', backref='category', lazy='dynamic')
+    children = db.relationship('Categoria', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
+    productos = db.relationship('Producto', backref='categoria', lazy='dynamic')
 
     def to_dict(self):
         return {

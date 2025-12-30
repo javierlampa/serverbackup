@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from models.user import User
+from models.usuario import Usuario
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -15,7 +15,7 @@ def login():
         password = request.form.get('password')
         remember = True if request.form.get('remember') else False
         
-        user = User.query.filter_by(username=username).first()
+        user = Usuario.query.filter_by(username=username).first()
         
         if not user or not user.check_password(password):
             flash('Por favor verifique sus credenciales e intente nuevamente.', 'danger')

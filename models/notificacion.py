@@ -13,4 +13,4 @@ class Notification(db.Model):
     sent_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    product = db.relationship('Product', backref='notifications')
+    product = db.relationship('Producto', backref='notifications')

@@ -1,12 +1,12 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from app import db
-from models.compra import Purchase
-from models.item_compra import PurchaseItem
-from models.producto import Product
-from models.proveedor import Supplier
-from models.movimiento_stock import StockMovement
-from models.categoria import Category
+from models.compra import Compra
+from models.item_compra import ItemCompra
+from models.producto import Producto
+from models.proveedor import Proveedor
+from models.movimiento_stock import MovimientoStock
+from models.categoria import Categoria
 from datetime import datetime
 import json
 
@@ -15,7 +15,7 @@ compras_bp = Blueprint('compras', __name__, url_prefix='/compras')
 @compras_bp.route('/')
 @login_required
 def index():
-    purchases = Purchase.query.order_by(Purchase.purchase_date.desc()).all()
+    purchases = Compra.query.order_by(Compra.purchase_date.desc()).all()
     return render_template('compras/index.html', purchases=purchases)
 
 @compras_bp.route('/create', methods=['GET', 'POST'])
@@ -42,7 +42,7 @@ def create():
                 return redirect(url_for('compras.create'))
 
             # Crear cabecera
-            purchase = Purchase(
+            purchase = Compra(
                 supplier_id=supplier_id,
                 invoice_number=invoice_number,
                 purchase_date=datetime.strptime(purchase_date_str, '%Y-%m-%d') if purchase_date_str else datetime.utcnow(),
@@ -65,7 +65,7 @@ def create():
                 item_total_with_vat = float(item['total_with_vat'])
                 
                 # Crear item de factura
-                purchase_item = PurchaseItem(
+                purchase_item = ItemCompra(
                     purchase_id=purchase.id,
                     product_id=product_id,
                     quantity=quantity,
@@ -76,15 +76,15 @@ def create():
                 db.session.add(purchase_item)
                 
                 # Actualizar stock del producto
-                product = Product.query.get(product_id)
+                product = Producto.query.get(product_id)
                 if product:
                     old_stock = product.current_stock
                     product.current_stock += quantity
                     
                     # Registrar movimiento de stock
-                    movement = StockMovement(
+                    movement = MovimientoStock(
                         product_id=product.id,
-                        type='entrada',
+                        movement_type='entry',
                         quantity=quantity,
                         reason=f'Compra - Factura {invoice_number}',
                         user_id=current_user.id
@@ -100,9 +100,9 @@ def create():
             flash(f'Error al registrar la factura: {str(e)}', 'danger')
             return redirect(url_for('compras.create'))
 
-    suppliers = Supplier.query.all()
-    products = Product.query.all()
-    categories = Category.query.all()
+    suppliers = Proveedor.query.all()
+    products = Producto.query.all()
+    categories = Categoria.query.all()
     return render_template('compras/create.html', 
                          suppliers=suppliers, 
                          products=products,
@@ -112,5 +112,5 @@ def create():
 @compras_bp.route('/view/<int:id>')
 @login_required
 def view(id):
-    purchase = Purchase.query.get_or_404(id)
+    purchase = Compra.query.get_or_404(id)
     return render_template('compras/view.html', purchase=purchase)

@@ -1,14 +1,14 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
 from app import db
-from models.categoria import Category
+from models.categoria import Categoria
 
 categorias_bp = Blueprint('categorias', __name__, url_prefix='/categorias')
 
 @categorias_bp.route('/')
 @login_required
 def index():
-    categories = Category.query.all()
+    categories = Categoria.query.all()
     
     # Sort categories hierarchically
     def get_category_sort_key(category):
@@ -33,7 +33,7 @@ def add():
         flash('El nombre es obligatorio', 'danger')
         return redirect(url_for('categorias.index'))
         
-    existing = Category.query.filter_by(name=name).first()
+    existing = Categoria.query.filter_by(name=name).first()
     if existing:
         flash('Ya existe una categoría con ese nombre', 'warning')
         return redirect(url_for('categorias.index'))
@@ -44,7 +44,7 @@ def add():
     else:
         parent_id = None
 
-    new_category = Category(name=name, description=description, color=color, icon=icon, parent_id=parent_id)
+    new_category = Categoria(name=name, description=description, color=color, icon=icon, parent_id=parent_id)
     db.session.add(new_category)
     db.session.commit()
     
@@ -54,7 +54,7 @@ def add():
 @categorias_bp.route('/edit/<int:id>', methods=['POST'])
 @login_required
 def edit(id):
-    category = Category.query.get_or_404(id)
+    category = Categoria.query.get_or_404(id)
     category.name = request.form.get('name')
     category.description = request.form.get('description')
     category.color = request.form.get('color')
@@ -75,10 +75,10 @@ def edit(id):
 @categorias_bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
-    category = Category.query.get_or_404(id)
+    category = Categoria.query.get_or_404(id)
     
     # Verificar si tiene productos asociados
-    if category.products.count() > 0:
+    if category.productos.count() > 0:
         flash('No se puede eliminar: tiene productos asociados', 'danger')
         return redirect(url_for('categorias.index'))
         

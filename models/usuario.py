@@ -3,8 +3,8 @@ from app import db, login_manager
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 
-class User(UserMixin, db.Model):
-    __tablename__ = 'users'
+class Usuario(UserMixin, db.Model):
+    __tablename__ = 'usuarios'
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
@@ -13,7 +13,7 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(20), default='user')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    loans = db.relationship('Loan', backref='created_by_user', lazy='dynamic')
+    prestamos = db.relationship('Prestamo', backref='creado_por_usuario', lazy='dynamic')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -27,4 +27,4 @@ class User(UserMixin, db.Model):
 
 @login_manager.user_loader
 def load_user(id):
-    return User.query.get(int(id))
+    return Usuario.query.get(int(id))

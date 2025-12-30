@@ -1,5 +1,5 @@
 from app import create_app, db
-from models import User
+from models import Usuario
 
 app = create_app()
 
@@ -10,8 +10,8 @@ def init_db():
         print("✅ Tablas creadas correctamente en PostgreSQL.")
 
         # Crear usuario admin si no existe
-        if not User.query.filter_by(username='admin').first():
-            admin = User(username='admin', email='admin@stock.com', role='admin')
+        if not Usuario.query.filter_by(username='admin').first():
+            admin = Usuario(username='admin', email='admin@stock.com', role='admin')
             admin.set_password('admin123')
             db.session.add(admin)
             db.session.commit()
