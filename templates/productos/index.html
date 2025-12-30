@@ -41,7 +41,7 @@
             <p class="text-slate-500 mt-1">Gestiona tu inventario de productos</p>
         </div>
         <button
-            @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('products.add') }}'; code=''; name=''; description=''; brand=''; model=''; serial_number=''; status='disponible'; condition='nuevo'; current_stock=0; min_stock=0; location=''; reference_price=''; notes=''; category_id=''; supplier_id=''"
+            @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('productos.add') }}'; code=''; name=''; description=''; brand=''; model=''; serial_number=''; status='disponible'; condition='nuevo'; current_stock=0; min_stock=0; location=''; reference_price=''; notes=''; category_id=''; supplier_id=''"
             class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-primary-600/20 transition-all transform hover:scale-105 flex items-center font-medium">
             <i class="fa-solid fa-plus mr-2"></i> Nuevo Producto
         </button>
@@ -49,7 +49,7 @@
 
     <!-- Filters -->
     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-        <form method="GET" action="{{ url_for('products.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <form method="GET" action="{{ url_for('productos.index') }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
                 <label class="block text-xs font-medium text-slate-600 mb-1">Categoría</label>
                 <select name="category_id" class="w-full rounded-lg border-slate-300 text-sm py-2"
@@ -101,7 +101,7 @@
             </div>
 
             <div class="flex items-end">
-                <a href="{{ url_for('products.index') }}"
+                <a href="{{ url_for('productos.index') }}"
                     class="w-full text-center px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
                     <i class="fa-solid fa-rotate-right mr-1"></i> Limpiar
                 </a>
@@ -202,7 +202,7 @@
 
                         <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             {% if product.qr_code_path %}
-                            <a href="{{ url_for('products.download_qr', id=product.id) }}"
+                            <a href="{{ url_for('productos.download_qr', id=product.id) }}"
                                 class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-green-600 hover:border-green-300 flex items-center justify-center transition-colors"
                                 title="Descargar QR">
                                 <i class="fa-solid fa-qrcode text-xs"></i>
@@ -210,13 +210,13 @@
                             {% endif %}
 
                             <button
-                                @click="modalOpen = true; isEdit = true; currentId = {{ product.id }}; formAction = '/products/edit/{{ product.id }}'; code = '{{ product.code }}'; name = '{{ product.name }}'; description = '{{ product.description or '' }}'; brand = '{{ product.brand or '' }}'; model = '{{ product.model or '' }}'; serial_number = '{{ product.serial_number or '' }}'; status = '{{ product.status }}'; condition = '{{ product.condition or 'nuevo' }}'; current_stock = {{ product.current_stock }}; min_stock = {{ product.min_stock }}; location = '{{ product.location or '' }}'; reference_price = '{{ product.reference_price or '' }}'; notes = '{{ product.notes or '' }}'; category_id = '{{ product.category_id or '' }}'; supplier_id = '{{ product.supplier_id or '' }}'"
+                                @click="modalOpen = true; isEdit = true; currentId = {{ product.id }}; formAction = '/productos/edit/{{ product.id }}'; code = '{{ product.code }}'; name = '{{ product.name }}'; description = '{{ product.description or '' }}'; brand = '{{ product.brand or '' }}'; model = '{{ product.model or '' }}'; serial_number = '{{ product.serial_number or '' }}'; status = '{{ product.status }}'; condition = '{{ product.condition or 'nuevo' }}'; current_stock = {{ product.current_stock }}; min_stock = {{ product.min_stock }}; location = '{{ product.location or '' }}'; reference_price = '{{ product.reference_price or '' }}'; notes = '{{ product.notes or '' }}'; category_id = '{{ product.category_id or '' }}'; supplier_id = '{{ product.supplier_id or '' }}'"
                                 class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-primary-600 hover:border-primary-300 flex items-center justify-center transition-colors"
                                 title="Editar">
                                 <i class="fa-solid fa-pen text-xs"></i>
                             </button>
 
-                            <form action="{{ url_for('products.delete', id=product.id) }}" method="POST"
+                            <form action="{{ url_for('productos.delete', id=product.id) }}" method="POST"
                                 onsubmit="return confirm('¿Estás seguro de eliminar este producto?');">
                                 <button type="submit"
                                     class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-300 flex items-center justify-center transition-colors"
@@ -238,7 +238,7 @@
             <h3 class="text-lg font-medium text-slate-600">No hay productos</h3>
             <p class="text-sm mb-6">Comienza agregando el primer producto a tu inventario.</p>
             <button
-                @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('products.add') }}'; code=''; name=''; description=''; brand=''; model=''; serial_number=''; status='disponible'; condition='nuevo'; current_stock=0; min_stock=0; location=''; reference_price=''; notes=''; category_id=''; supplier_id=''"
+                @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('productos.add') }}'; code=''; name=''; description=''; brand=''; model=''; serial_number=''; status='disponible'; condition='nuevo'; current_stock=0; min_stock=0; location=''; reference_price=''; notes=''; category_id=''; supplier_id=''"
                 class="text-primary-600 font-medium hover:text-primary-700 flex items-center">
                 <i class="fa-solid fa-plus mr-2"></i> Crear Producto
             </button>
@@ -502,7 +502,7 @@
                 <div class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-3">
                     <button type="button" @click="
                             if (newSupplierName) {
-                                fetch('{{ url_for('suppliers.add') }}', {
+                                fetch('{{ url_for('proveedores.add') }}', {
                                     method: 'POST',
                                     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                                     body: new URLSearchParams({
@@ -531,10 +531,6 @@
                                         newSupplierPhone = '';
                                         newSupplierEmail = '';
                                         newSupplierAddress = '';
-                                        
-                                        // Optional: reload to sync all lists if needed, 
-                                        // but we already updated the dropdown manually.
-                                        // location.reload(); 
                                     }
                                 });
                             }

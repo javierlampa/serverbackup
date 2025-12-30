@@ -1,23 +1,24 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from app import db
-from models.purchase import Purchase
-from models.purchase_item import PurchaseItem
-from models.product import Product
-from models.supplier import Supplier
-from models.stock_movement import StockMovement
+from models.compra import Purchase
+from models.item_compra import PurchaseItem
+from models.producto import Product
+from models.proveedor import Supplier
+from models.movimiento_stock import StockMovement
+from models.categoria import Category
 from datetime import datetime
 import json
 
-purchases_bp = Blueprint('purchases', __name__, url_prefix='/purchases')
+compras_bp = Blueprint('compras', __name__, url_prefix='/compras')
 
-@purchases_bp.route('/')
+@compras_bp.route('/')
 @login_required
 def index():
     purchases = Purchase.query.order_by(Purchase.purchase_date.desc()).all()
-    return render_template('purchases/index.html', purchases=purchases)
+    return render_template('compras/index.html', purchases=purchases)
 
-@purchases_bp.route('/create', methods=['GET', 'POST'])
+@compras_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
     if request.method == 'POST':
@@ -38,7 +39,7 @@ def create():
             
             if not items_data:
                 flash('La factura debe tener al menos un producto', 'danger')
-                return redirect(url_for('purchases.create'))
+                return redirect(url_for('compras.create'))
 
             # Crear cabecera
             purchase = Purchase(
@@ -92,25 +93,24 @@ def create():
             
             db.session.commit()
             flash('Factura de compra registrada exitosamente y stock actualizado', 'success')
-            return redirect(url_for('purchases.index'))
+            return redirect(url_for('compras.index'))
             
         except Exception as e:
             db.session.rollback()
             flash(f'Error al registrar la factura: {str(e)}', 'danger')
-            return redirect(url_for('purchases.create'))
+            return redirect(url_for('compras.create'))
 
     suppliers = Supplier.query.all()
     products = Product.query.all()
-    from models.category import Category
     categories = Category.query.all()
-    return render_template('purchases/create.html', 
+    return render_template('compras/create.html', 
                          suppliers=suppliers, 
                          products=products,
                          categories=categories,
                          today=datetime.utcnow().strftime('%Y-%m-%d'))
 
-@purchases_bp.route('/view/<int:id>')
+@compras_bp.route('/view/<int:id>')
 @login_required
 def view(id):
     purchase = Purchase.query.get_or_404(id)
-    return render_template('purchases/view.html', purchase=purchase)
+    return render_template('compras/view.html', purchase=purchase)

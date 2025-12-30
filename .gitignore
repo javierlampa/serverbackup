@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venc/
+venv/
+ENV/
+env/
+.env
+.venv
+
+# Database
+instance/
+*.db
+*.sqlite3
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Static
+static/uploads/*
+!static/uploads/.gitkeep

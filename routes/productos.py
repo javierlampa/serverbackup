@@ -1,16 +1,16 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, send_file
 from flask_login import login_required
 from app import db
-from models.product import Product
-from models.category import Category
-from models.supplier import Supplier
+from models.producto import Product
+from models.categoria import Category
+from models.proveedor import Supplier
 from utils.qr_generator import generate_qr_code
 from datetime import datetime
 import os
 
-products_bp = Blueprint('products', __name__, url_prefix='/products')
+productos_bp = Blueprint('productos', __name__, url_prefix='/productos')
 
-@products_bp.route('/')
+@productos_bp.route('/')
 @login_required
 def index():
     # Get filter parameters
@@ -36,7 +36,7 @@ def index():
     categories = Category.query.order_by(Category.name).all()
     suppliers = Supplier.query.order_by(Supplier.name).all()
     
-    return render_template('products/index.html', 
+    return render_template('productos/index.html', 
                          products=products,
                          categories=categories,
                          suppliers=suppliers,
@@ -44,7 +44,7 @@ def index():
                          selected_status=status,
                          selected_supplier=supplier_id)
 
-@products_bp.route('/add', methods=['POST'])
+@productos_bp.route('/add', methods=['POST'])
 @login_required
 def add():
     code = request.form.get('code')
@@ -64,20 +64,20 @@ def add():
     
     if not code or not name:
         flash('El código y el nombre son obligatorios', 'danger')
-        return redirect(url_for('products.index'))
+        return redirect(url_for('productos.index'))
     
     # Check if code already exists
     existing = Product.query.filter_by(code=code).first()
     if existing:
         flash('Ya existe un producto con ese código', 'warning')
-        return redirect(url_for('products.index'))
+        return redirect(url_for('productos.index'))
     
     # Check if serial number already exists (if provided)
     if serial_number:
         existing_serial = Product.query.filter_by(serial_number=serial_number).first()
         if existing_serial:
             flash('Ya existe un producto con ese número de serie', 'warning')
-            return redirect(url_for('products.index'))
+            return redirect(url_for('productos.index'))
     
     # Create product
     new_product = Product(
@@ -109,9 +109,9 @@ def add():
         flash(f'Producto creado pero hubo un error al generar el QR: {str(e)}', 'warning')
     
     flash('Producto creado exitosamente', 'success')
-    return redirect(url_for('products.index'))
+    return redirect(url_for('productos.index'))
 
-@products_bp.route('/edit/<int:id>', methods=['POST'])
+@productos_bp.route('/edit/<int:id>', methods=['POST'])
 @login_required
 def edit(id):
     product = Product.query.get_or_404(id)
@@ -121,14 +121,14 @@ def edit(id):
     
     if not code or not name:
         flash('El código y el nombre son obligatorios', 'danger')
-        return redirect(url_for('products.index'))
+        return redirect(url_for('productos.index'))
     
     # Check if code is being changed and if new code already exists
     if code != product.code:
         existing = Product.query.filter_by(code=code).first()
         if existing:
             flash('Ya existe un producto con ese código', 'warning')
-            return redirect(url_for('products.index'))
+            return redirect(url_for('productos.index'))
     
     # Check serial number
     serial_number = request.form.get('serial_number')
@@ -136,7 +136,7 @@ def edit(id):
         existing_serial = Product.query.filter_by(serial_number=serial_number).first()
         if existing_serial:
             flash('Ya existe un producto con ese número de serie', 'warning')
-            return redirect(url_for('products.index'))
+            return redirect(url_for('productos.index'))
     
     # Update product
     product.code = code
@@ -167,9 +167,9 @@ def edit(id):
     
     db.session.commit()
     flash('Producto actualizado exitosamente', 'success')
-    return redirect(url_for('products.index'))
+    return redirect(url_for('productos.index'))
 
-@products_bp.route('/delete/<int:id>', methods=['POST'])
+@productos_bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
     product = Product.query.get_or_404(id)
@@ -177,7 +177,7 @@ def delete(id):
     # Check if product has movements
     if product.movements.count() > 0:
         flash('No se puede eliminar: tiene movimientos de stock asociados', 'danger')
-        return redirect(url_for('products.index'))
+        return redirect(url_for('productos.index'))
     
     # Delete QR code file if exists
     if product.qr_code_path:
@@ -191,20 +191,20 @@ def delete(id):
     db.session.delete(product)
     db.session.commit()
     flash('Producto eliminado exitosamente', 'success')
-    return redirect(url_for('products.index'))
+    return redirect(url_for('productos.index'))
 
-@products_bp.route('/download-qr/<int:id>')
+@productos_bp.route('/download-qr/<int:id>')
 @login_required
 def download_qr(id):
     product = Product.query.get_or_404(id)
     
     if not product.qr_code_path:
         flash('Este producto no tiene código QR generado', 'warning')
-        return redirect(url_for('products.index'))
+        return redirect(url_for('productos.index'))
     
     qr_file = os.path.join('static', product.qr_code_path)
     if not os.path.exists(qr_file):
         flash('El archivo QR no existe', 'danger')
-        return redirect(url_for('products.index'))
+        return redirect(url_for('productos.index'))
     
     return send_file(qr_file, as_attachment=True, download_name=f'QR_{product.code}.png')

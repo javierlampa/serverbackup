@@ -1,17 +1,17 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required
 from app import db
-from models.supplier import Supplier
+from models.proveedor import Supplier
 
-suppliers_bp = Blueprint('suppliers', __name__, url_prefix='/suppliers')
+proveedores_bp = Blueprint('proveedores', __name__, url_prefix='/proveedores')
 
-@suppliers_bp.route('/')
+@proveedores_bp.route('/')
 @login_required
 def index():
     suppliers = Supplier.query.all()
-    return render_template('suppliers/index.html', suppliers=suppliers)
+    return render_template('proveedores/index.html', suppliers=suppliers)
 
-@suppliers_bp.route('/add', methods=['POST'])
+@proveedores_bp.route('/add', methods=['POST'])
 @login_required
 def add():
     name = request.form.get('name')
@@ -25,7 +25,7 @@ def add():
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.accept_mimetypes.accept_json:
             return jsonify({'success': False, 'error': 'El nombre es obligatorio'}), 400
         flash('El nombre de la empresa es obligatorio', 'danger')
-        return redirect(url_for('suppliers.index'))
+        return redirect(url_for('proveedores.index'))
         
     new_supplier = Supplier(
         name=name,
@@ -44,9 +44,9 @@ def add():
         return jsonify({'success': True, 'id': new_supplier.id, 'name': new_supplier.name})
     
     flash('Proveedor agregado exitosamente', 'success')
-    return redirect(url_for('suppliers.index'))
+    return redirect(url_for('proveedores.index'))
 
-@suppliers_bp.route('/edit/<int:id>', methods=['POST'])
+@proveedores_bp.route('/edit/<int:id>', methods=['POST'])
 @login_required
 def edit(id):
     supplier = Supplier.query.get_or_404(id)
@@ -59,9 +59,9 @@ def edit(id):
     
     db.session.commit()
     flash('Proveedor actualizado', 'success')
-    return redirect(url_for('suppliers.index'))
+    return redirect(url_for('proveedores.index'))
 
-@suppliers_bp.route('/delete/<int:id>', methods=['POST'])
+@proveedores_bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
     supplier = Supplier.query.get_or_404(id)
@@ -69,9 +69,9 @@ def delete(id):
     # Verificar si tiene productos asociados
     if supplier.products.count() > 0:
         flash('No se puede eliminar: tiene productos asociados', 'danger')
-        return redirect(url_for('suppliers.index'))
+        return redirect(url_for('proveedores.index'))
         
     db.session.delete(supplier)
     db.session.commit()
     flash('Proveedor eliminado', 'success')
-    return redirect(url_for('suppliers.index'))
+    return redirect(url_for('proveedores.index'))

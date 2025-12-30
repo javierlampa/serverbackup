@@ -10,7 +10,7 @@
             <h1 class="text-2xl font-bold text-slate-800">Préstamos</h1>
             <p class="text-slate-500">Gestión de herramientas y equipos prestados</p>
         </div>
-        <a href="{{ url_for('loans.create') }}"
+        <a href="{{ url_for('prestamos.create') }}"
             class="inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20">
             <i class="fa-solid fa-plus mr-2"></i> Nuevo Préstamo
         </a>
@@ -130,7 +130,8 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             {% if loan.status == 'active' %}
-                            <form action="{{ url_for('loans.return_loan', id=loan.id) }}" method="POST" class="inline">
+                            <form action="{{ url_for('prestamos.return_loan', id=loan.id) }}" method="POST"
+                                class="inline">
                                 <button type="submit"
                                     class="text-primary-600 hover:text-primary-700 font-medium text-sm transition-colors"
                                     onclick="return confirm('¿Confirmar devolución de este producto?')">

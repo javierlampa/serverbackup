@@ -1,10 +1,10 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, abort
 from flask_login import login_required, current_user
 from app import db
-from models.user import User
+from models.usuario import User
 from functools import wraps
 
-users_bp = Blueprint('users', __name__, url_prefix='/users')
+usuarios_bp = Blueprint('usuarios', __name__, url_prefix='/usuarios')
 
 def admin_required(f):
     @wraps(f)

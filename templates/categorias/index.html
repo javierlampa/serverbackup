@@ -23,7 +23,7 @@
             <p class="text-slate-500 mt-1">Gestiona la organización de tus productos</p>
         </div>
         <button
-            @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('categories.add') }}'; name=''; description=''; color='#3b82f6'; icon='fa-box'; parent_id=''"
+            @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('categorias.add') }}'; name=''; description=''; color='#3b82f6'; icon='fa-box'; parent_id=''"
             class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-primary-600/20 transition-all transform hover:scale-105 flex items-center font-medium">
             <i class="fa-solid fa-plus mr-2"></i> Nueva Categoría
         </button>
@@ -89,12 +89,12 @@
                         <!-- Actions -->
                         <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
-                                @click="modalOpen = true; isEdit = true; currentId = {{ category.id }}; formAction = '/categories/edit/{{ category.id }}'; name = '{{ category.name }}'; description = '{{ category.description }}'; color = '{{ category.color }}'; icon = '{{ category.icon }}'; parent_id = '{{ category.parent_id or '' }}'"
+                                @click="modalOpen = true; isEdit = true; currentId = {{ category.id }}; formAction = '/categorias/edit/{{ category.id }}'; name = '{{ category.name }}'; description = '{{ category.description }}'; color = '{{ category.color }}'; icon = '{{ category.icon }}'; parent_id = '{{ category.parent_id or '' }}'"
                                 class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-primary-600 hover:border-primary-300 flex items-center justify-center transition-colors"
                                 title="Editar">
                                 <i class="fa-solid fa-pen text-xs"></i>
                             </button>
-                            <form action="{{ url_for('categories.delete', id=category.id) }}" method="POST"
+                            <form action="{{ url_for('categorias.delete', id=category.id) }}" method="POST"
                                 onsubmit="return confirm('¿Estás seguro de eliminar esta categoría?');">
                                 <button type="submit"
                                     class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-300 flex items-center justify-center transition-colors"
@@ -116,7 +116,7 @@
             <h3 class="text-lg font-medium text-slate-600">No hay categorías</h3>
             <p class="text-sm mb-6">Comienza creando la primera categoría para tus productos.</p>
             <button
-                @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('categories.add') }}'; name=''; description=''; color='#3b82f6'; icon='fa-box'; parent_id=''"
+                @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('categorias.add') }}'; name=''; description=''; color='#3b82f6'; icon='fa-box'; parent_id=''"
                 class="text-primary-600 font-medium hover:text-primary-700 flex items-center">
                 <i class="fa-solid fa-plus mr-2"></i> Crear Categoría
             </button>

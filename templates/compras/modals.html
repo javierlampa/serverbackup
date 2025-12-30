@@ -36,7 +36,7 @@
             <div class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-3">
                 <button type="button" @click="
                     if (newSupplierName) {
-                        fetch('{{ url_for('suppliers.add') }}', {
+                        fetch('{{ url_for('proveedores.add') }}', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                             body: new URLSearchParams({
@@ -101,7 +101,7 @@
             <div class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-3">
                 <button type="button" @click="
                     if (newProductCode && newProductName) {
-                        fetch('{{ url_for('products.add') }}', {
+                        fetch('{{ url_for('productos.add') }}', {
                             method: 'POST',
                             headers: {'Content-Type': 'application/x-www-form-urlencoded'},
                             body: new URLSearchParams({

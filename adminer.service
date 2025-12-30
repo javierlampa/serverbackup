@@ -1,0 +1,13 @@
+[Unit]
+Description=Adminer PHP Server
+After=network.target
+
+[Service]
+User=edictos
+WorkingDirectory=/home/edictos/stock
+ExecStart=/usr/bin/php -S 0.0.0.0:5003 adminer.php
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

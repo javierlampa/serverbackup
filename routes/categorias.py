@@ -1,11 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required
 from app import db
-from models.category import Category
+from models.categoria import Category
 
-categories_bp = Blueprint('categories', __name__, url_prefix='/categories')
+categorias_bp = Blueprint('categorias', __name__, url_prefix='/categorias')
 
-@categories_bp.route('/')
+@categorias_bp.route('/')
 @login_required
 def index():
     categories = Category.query.all()
@@ -18,9 +18,9 @@ def index():
         
     categories.sort(key=get_category_sort_key)
     
-    return render_template('categories/index.html', categories=categories)
+    return render_template('categorias/index.html', categories=categories)
 
-@categories_bp.route('/add', methods=['POST'])
+@categorias_bp.route('/add', methods=['POST'])
 @login_required
 def add():
     name = request.form.get('name')
@@ -31,12 +31,12 @@ def add():
     
     if not name:
         flash('El nombre es obligatorio', 'danger')
-        return redirect(url_for('categories.index'))
+        return redirect(url_for('categorias.index'))
         
     existing = Category.query.filter_by(name=name).first()
     if existing:
         flash('Ya existe una categoría con ese nombre', 'warning')
-        return redirect(url_for('categories.index'))
+        return redirect(url_for('categorias.index'))
     
     # Convert parent_id to integer or None
     if parent_id and parent_id.isdigit():
@@ -49,9 +49,9 @@ def add():
     db.session.commit()
     
     flash('Categoría creada exitosamente', 'success')
-    return redirect(url_for('categories.index'))
+    return redirect(url_for('categorias.index'))
 
-@categories_bp.route('/edit/<int:id>', methods=['POST'])
+@categorias_bp.route('/edit/<int:id>', methods=['POST'])
 @login_required
 def edit(id):
     category = Category.query.get_or_404(id)
@@ -70,9 +70,9 @@ def edit(id):
     
     db.session.commit()
     flash('Categoría actualizada', 'success')
-    return redirect(url_for('categories.index'))
+    return redirect(url_for('categorias.index'))
 
-@categories_bp.route('/delete/<int:id>', methods=['POST'])
+@categorias_bp.route('/delete/<int:id>', methods=['POST'])
 @login_required
 def delete(id):
     category = Category.query.get_or_404(id)
@@ -80,15 +80,14 @@ def delete(id):
     # Verificar si tiene productos asociados
     if category.products.count() > 0:
         flash('No se puede eliminar: tiene productos asociados', 'danger')
-        return redirect(url_for('categories.index'))
+        return redirect(url_for('categorias.index'))
         
     # Verificar si tiene subcategorías
     if category.children.count() > 0:
         flash('No se puede eliminar: tiene subcategorías asociadas', 'danger')
-        return redirect(url_for('categories.index'))
+        return redirect(url_for('categorias.index'))
         
     db.session.delete(category)
     db.session.commit()
     flash('Categoría eliminada', 'success')
-    return redirect(url_for('categories.index'))
-
+    return redirect(url_for('categorias.index'))

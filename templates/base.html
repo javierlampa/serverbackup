@@ -128,9 +128,9 @@
 
             <!-- Menu Items Loop -->
             {% set menu_items = [
-            {'icon': 'fa-box', 'label': 'Productos', 'href': url_for('products.index')},
-            {'icon': 'fa-tags', 'label': 'Categorías', 'href': url_for('categories.index')},
-            {'icon': 'fa-users', 'label': 'Proveedores', 'href': url_for('suppliers.index')}
+            {'icon': 'fa-box', 'label': 'Productos', 'href': url_for('productos.index')},
+            {'icon': 'fa-tags', 'label': 'Categorías', 'href': url_for('categorias.index')},
+            {'icon': 'fa-users', 'label': 'Proveedores', 'href': url_for('proveedores.index')}
             ] %}
 
             {% for item in menu_items %}
@@ -154,9 +154,9 @@
                 :class="sidebarOpen ? 'opacity-100' : 'opacity-0 h-0 mb-0'">Operaciones</p>
 
             {% set op_items = [
-            {'icon': 'fa-file-invoice-dollar', 'label': 'Compras', 'href': url_for('purchases.index')},
-            {'icon': 'fa-right-left', 'label': 'Movimientos', 'href': url_for('movements.index')},
-            {'icon': 'fa-hand-holding-hand', 'label': 'Préstamos', 'href': url_for('loans.index')}
+            {'icon': 'fa-file-invoice-dollar', 'label': 'Compras', 'href': url_for('compras.index')},
+            {'icon': 'fa-right-left', 'label': 'Movimientos', 'href': url_for('movimientos.index')},
+            {'icon': 'fa-hand-holding-hand', 'label': 'Préstamos', 'href': url_for('prestamos.index')}
             ] %}
 
             {% for item in op_items %}
@@ -180,7 +180,7 @@
             <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 transition-opacity duration-300 whitespace-nowrap overflow-hidden"
                 :class="sidebarOpen ? 'opacity-100' : 'opacity-0 h-0 mb-0'">Configuración</p>
 
-            <a href="{{ url_for('users.index') }}"
+            <a href="{{ url_for('usuarios.index') }}"
                 class="group flex items-center px-3 py-3 rounded-xl transition-all duration-200 relative text-slate-400 hover:bg-slate-800 hover:text-white">
                 <i class="fa-solid fa-users-gear w-6 text-center text-lg transition-colors group-hover:text-white"></i>
                 <span class="ml-3 font-medium whitespace-nowrap transition-all duration-300 origin-left"
@@ -271,8 +271,8 @@
                 <span class="text-[10px] font-medium">Inicio</span>
             </a>
 
-            <a href="{{ url_for('loans.index') }}"
-                class="flex flex-col items-center justify-center w-full h-full {% if request.endpoint == 'loans.index' %}text-primary-600{% else %}text-slate-400 hover:text-slate-600{% endif %}">
+            <a href="{{ url_for('prestamos.index') }}"
+                class="flex flex-col items-center justify-center w-full h-full {% if request.endpoint == 'prestamos.index' %}text-primary-600{% else %}text-slate-400 hover:text-slate-600{% endif %}">
                 <i class="fa-solid fa-hand-holding-hand text-xl mb-1"></i>
                 <span class="text-[10px] font-medium">Préstamos</span>
             </a>
@@ -285,8 +285,8 @@
                 </button>
             </div>
 
-            <a href="{{ url_for('purchases.index') }}"
-                class="flex flex-col items-center justify-center w-full h-full {% if request.endpoint == 'purchases.index' %}text-primary-600{% else %}text-slate-400 hover:text-slate-600{% endif %}">
+            <a href="{{ url_for('compras.index') }}"
+                class="flex flex-col items-center justify-center w-full h-full {% if request.endpoint == 'compras.index' %}text-primary-600{% else %}text-slate-400 hover:text-slate-600{% endif %}">
                 <i class="fa-solid fa-file-invoice-dollar text-xl mb-1"></i>
                 <span class="text-[10px] font-medium">Compras</span>
             </a>
@@ -339,18 +339,18 @@
                     <div class="mt-6 mb-2 px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Gestión
                     </div>
 
-                    <a href="{{ url_for('products.index') }}"
-                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'products.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                    <a href="{{ url_for('productos.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'productos.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
                         <i class="fa-solid fa-box mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
                         Productos
                     </a>
-                    <a href="{{ url_for('categories.index') }}"
-                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'categories.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                    <a href="{{ url_for('categorias.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'categorias.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
                         <i class="fa-solid fa-tags mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
                         Categorías
                     </a>
-                    <a href="{{ url_for('suppliers.index') }}"
-                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'suppliers.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                    <a href="{{ url_for('proveedores.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'proveedores.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
                         <i class="fa-solid fa-users mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
                         Proveedores
                     </a>
@@ -358,19 +358,19 @@
                     <div class="mt-6 mb-2 px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         Operaciones</div>
 
-                    <a href="{{ url_for('purchases.index') }}"
-                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'purchases.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                    <a href="{{ url_for('compras.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'compras.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
                         <i
                             class="fa-solid fa-file-invoice-dollar mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
                         Compras
                     </a>
-                    <a href="{{ url_for('movements.index') }}"
-                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'movements.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                    <a href="{{ url_for('movimientos.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'movimientos.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
                         <i class="fa-solid fa-right-left mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
                         Movimientos
                     </a>
-                    <a href="{{ url_for('loans.index') }}"
-                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'loans.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                    <a href="{{ url_for('prestamos.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'prestamos.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
                         <i
                             class="fa-solid fa-hand-holding-hand mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
                         Préstamos
@@ -379,8 +379,8 @@
                     {% if current_user.is_admin %}
                     <div class="mt-6 mb-2 px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         Configuración</div>
-                    <a href="{{ url_for('users.index') }}"
-                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'users.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                    <a href="{{ url_for('usuarios.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'usuarios.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
                         <i class="fa-solid fa-users-gear mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
                         Usuarios
                     </a>

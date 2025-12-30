@@ -10,13 +10,13 @@
             <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Nueva Factura de Compra</h1>
             <p class="text-slate-500 mt-1">Registra el ingreso de mercadería y actualiza el stock</p>
         </div>
-        <a href="{{ url_for('purchases.index') }}"
+        <a href="{{ url_for('compras.index') }}"
             class="text-slate-500 hover:text-slate-700 font-medium flex items-center">
             <i class="fa-solid fa-arrow-left mr-2"></i> Volver al listado
         </a>
     </div>
 
-    <form action="{{ url_for('purchases.create') }}" method="POST" @submit="submitForm($event)">
+    <form action="{{ url_for('compras.create') }}" method="POST" @submit="submitForm($event)">
         <!-- Hidden field for items data -->
         <input type="hidden" name="items_data" :value="JSON.stringify(items)">
         <input type="hidden" name="total_without_vat" :value="subtotal">
@@ -197,7 +197,7 @@
     </form>
 
     <!-- Modals -->
-    {% include 'purchases/_modals.html' %}
+    {% include 'compras/_modals.html' %}
 </div>
 
 <script>
@@ -275,7 +275,7 @@
 
             async saveSupplier() {
         try {
-            const response = await fetch("{{ url_for('suppliers.add') }}", {
+            const response = await fetch("{{ url_for('proveedores.add') }}", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams(this.newSupplier)
@@ -301,7 +301,7 @@
 
             async saveProduct() {
         try {
-            const response = await fetch("{{ url_for('products.add') }}", {
+            const response = await fetch("{{ url_for('productos.add') }}", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: new URLSearchParams(this.newProduct)

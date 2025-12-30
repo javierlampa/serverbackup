@@ -23,26 +23,26 @@ def create_app(config_class=Config):
     from routes.dashboard import dashboard_bp
     app.register_blueprint(dashboard_bp)
 
-    from routes.categories import categories_bp
-    app.register_blueprint(categories_bp)
+    from routes.categorias import categorias_bp
+    app.register_blueprint(categorias_bp)
     
-    from routes.suppliers import suppliers_bp
-    app.register_blueprint(suppliers_bp)
+    from routes.proveedores import proveedores_bp
+    app.register_blueprint(proveedores_bp)
 
-    from routes.products import products_bp
-    app.register_blueprint(products_bp)
+    from routes.productos import productos_bp
+    app.register_blueprint(productos_bp)
     
-    from routes.purchases import purchases_bp
-    app.register_blueprint(purchases_bp)
+    from routes.compras import compras_bp
+    app.register_blueprint(compras_bp)
     
-    from routes.movements import movements_bp
-    app.register_blueprint(movements_bp)
+    from routes.movimientos import movimientos_bp
+    app.register_blueprint(movimientos_bp)
     
-    from routes.loans import loans_bp
-    app.register_blueprint(loans_bp)
+    from routes.prestamos import prestamos_bp
+    app.register_blueprint(prestamos_bp)
 
-    from routes.users import users_bp
-    app.register_blueprint(users_bp)
+    from routes.usuarios import usuarios_bp
+    app.register_blueprint(usuarios_bp)
     
     @app.route('/')
     def index():

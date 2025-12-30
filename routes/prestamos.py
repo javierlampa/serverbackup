@@ -1,20 +1,20 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app import db
-from models.loan import Loan
-from models.product import Product
-from models.stock_movement import StockMovement
+from models.prestamo import Loan
+from models.producto import Product
+from models.movimiento_stock import StockMovement
 from datetime import datetime
 
-loans_bp = Blueprint('loans', __name__, url_prefix='/loans')
+prestamos_bp = Blueprint('prestamos', __name__, url_prefix='/prestamos')
 
-@loans_bp.route('/')
+@prestamos_bp.route('/')
 @login_required
 def index():
     loans = Loan.query.order_by(Loan.loan_date.desc()).all()
-    return render_template('loans/index.html', loans=loans)
+    return render_template('prestamos/index.html', loans=loans)
 
-@loans_bp.route('/create', methods=['GET', 'POST'])
+@prestamos_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 def create():
     if request.method == 'POST':
@@ -30,7 +30,7 @@ def create():
         
         if product.current_stock <= 0:
             flash('No hay stock disponible para realizar el préstamo.', 'danger')
-            return redirect(url_for('loans.create'))
+            return redirect(url_for('prestamos.create'))
             
         loan_date = datetime.utcnow()
         if loan_date_str:
@@ -70,19 +70,19 @@ def create():
         db.session.commit()
         
         flash('Préstamo registrado correctamente.', 'success')
-        return redirect(url_for('loans.index'))
+        return redirect(url_for('prestamos.index'))
         
     products = Product.query.filter(Product.current_stock > 0).all()
-    return render_template('loans/create.html', products=products)
+    return render_template('prestamos/create.html', products=products)
 
-@loans_bp.route('/return/<int:id>', methods=['POST'])
+@prestamos_bp.route('/return/<int:id>', methods=['POST'])
 @login_required
 def return_loan(id):
     loan = Loan.query.get_or_404(id)
     
     if loan.status == 'returned':
         flash('Este préstamo ya fue devuelto.', 'warning')
-        return redirect(url_for('loans.index'))
+        return redirect(url_for('prestamos.index'))
         
     loan.status = 'returned'
     loan.return_date = datetime.utcnow()
@@ -105,4 +105,4 @@ def return_loan(id):
     db.session.commit()
     
     flash('Producto devuelto correctamente.', 'success')
-    return redirect(url_for('loans.index'))
+    return redirect(url_for('prestamos.index'))

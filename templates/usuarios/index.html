@@ -10,7 +10,7 @@
             <h1 class="text-2xl font-bold text-slate-800">Gestión de Usuarios</h1>
             <p class="text-slate-500">Administra los accesos y roles del sistema</p>
         </div>
-        <a href="{{ url_for('users.create') }}"
+        <a href="{{ url_for('usuarios.create') }}"
             class="inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20">
             <i class="fa-solid fa-user-plus mr-2"></i> Nuevo Usuario
         </a>
@@ -58,12 +58,12 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 text-right space-x-3">
-                            <a href="{{ url_for('users.edit', id=user.id) }}"
+                            <a href="{{ url_for('usuarios.edit', id=user.id) }}"
                                 class="text-slate-400 hover:text-primary-600 transition-colors">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </a>
                             {% if user.id != current_user.id %}
-                            <form action="{{ url_for('users.delete', id=user.id) }}" method="POST" class="inline">
+                            <form action="{{ url_for('usuarios.delete', id=user.id) }}" method="POST" class="inline">
                                 <button type="submit" class="text-slate-400 hover:text-red-600 transition-colors"
                                     onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
                                     <i class="fa-solid fa-trash-can"></i>
