@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+{% block title %}Categorías - Stock TLS{% endblock %}
+
+{% block content %}
+<div class="space-y-6" x-data="{ 
+        modalOpen: false, 
+        isEdit: false, 
+        currentId: null, 
+        formAction: '', 
+        name: '', 
+        description: '', 
+        color: '#3b82f6', 
+        icon: 'fa-box', 
+        parent_id: '',
+        collapsed: {}
+    }">
+
+    <!-- Header & Actions -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Categorías</h1>
+            <p class="text-slate-500 mt-1">Gestiona la organización de tus productos</p>
+        </div>
+        <button
+            @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('categories.add') }}'; name=''; description=''; color='#3b82f6'; icon='fa-box'; parent_id=''"
+            class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-primary-600/20 transition-all transform hover:scale-105 flex items-center font-medium">
+            <i class="fa-solid fa-plus mr-2"></i> Nueva Categoría
+        </button>
+    </div>
+
+    <!-- Categories Hierarchical List -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        {% if categories %}
+        <div class="divide-y divide-slate-100">
+            {% for category in categories %}
+            <div class="group hover:bg-slate-50 transition-colors"
+                x-show="{% for parent in category.parents_path %}!collapsed[{{ parent.id }}] && {% endfor %}true"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="flex items-center justify-between p-4"
+                    style="padding-left: {{ (category.parents_path|length * 2.5) + 1 }}rem;">
+
+                    <!-- Left: Icon, Name & Description -->
+                    <div class="flex items-center space-x-4 flex-1 min-w-0">
+                        <!-- Collapse Indicator (if has children) -->
+                        {% if category.children.count() > 0 %}
+                        <button
+                            @click="collapsed[{{ category.id }}] = !collapsed[{{ category.id }}]; collapsed = { ...collapsed }"
+                            class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-all">
+                            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                                :class="collapsed[{{ category.id }}] ? '-rotate-90' : ''"></i>
+                        </button>
+                        {% else %}
+                        <div class="w-6"></div>
+                        {% endif %}
+
+                        <!-- Icon -->
+                        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white shadow-sm flex-shrink-0"
+                            style="background-color: {{ category.color }}">
+                            <i class="fa-solid {{ category.icon }} text-lg"></i>
+                        </div>
+
+                        <!-- Name & Description -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center space-x-2">
+                                <h3 class="text-base font-semibold text-slate-800">{{ category.name }}</h3>
+                                {% if category.children.count() > 0 %}
+                                <span class="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
+                                    {{ category.children.count() }} sub{{ 's' if category.children.count() > 1 else ''
+                                    }}
+                                </span>
+                                {% endif %}
+                            </div>
+                            <p class="text-sm text-slate-500 truncate">{{ category.description or 'Sin descripción' }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Right: Stats & Actions -->
+                    <div class="flex items-center space-x-6 ml-4">
+                        <!-- Products Count -->
+                        <div class="flex items-center space-x-2 text-sm text-slate-600">
+                            <i class="fa-solid fa-box text-slate-400"></i>
+                            <span class="font-medium">{{ category.products.count() }}</span>
+                            <span class="text-slate-400">Productos</span>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                @click="modalOpen = true; isEdit = true; currentId = {{ category.id }}; formAction = '/categories/edit/{{ category.id }}'; name = '{{ category.name }}'; description = '{{ category.description }}'; color = '{{ category.color }}'; icon = '{{ category.icon }}'; parent_id = '{{ category.parent_id or '' }}'"
+                                class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-primary-600 hover:border-primary-300 flex items-center justify-center transition-colors"
+                                title="Editar">
+                                <i class="fa-solid fa-pen text-xs"></i>
+                            </button>
+                            <form action="{{ url_for('categories.delete', id=category.id) }}" method="POST"
+                                onsubmit="return confirm('¿Estás seguro de eliminar esta categoría?');">
+                                <button type="submit"
+                                    class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-red-600 hover:border-red-300 flex items-center justify-center transition-colors"
+                                    title="Eliminar">
+                                    <i class="fa-solid fa-trash text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center justify-center py-16 text-slate-400">
+            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center shadow-sm mb-4">
+                <i class="fa-solid fa-box-open text-3xl text-slate-300"></i>
+            </div>
+            <h3 class="text-lg font-medium text-slate-600">No hay categorías</h3>
+            <p class="text-sm mb-6">Comienza creando la primera categoría para tus productos.</p>
+            <button
+                @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('categories.add') }}'; name=''; description=''; color='#3b82f6'; icon='fa-box'; parent_id=''"
+                class="text-primary-600 font-medium hover:text-primary-700 flex items-center">
+                <i class="fa-solid fa-plus mr-2"></i> Crear Categoría
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal -->
+    <div x-show="modalOpen" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+        aria-modal="true" style="display: none;">
+
+        <div x-show="modalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+            class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" aria-hidden="true"
+            @click="modalOpen = false"></div>
+
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div x-show="modalOpen" x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+                class="bg-white rounded-2xl shadow-2xl transform transition-all max-w-lg w-full overflow-hidden">
+
+                <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-slate-800"
+                        x-text="isEdit ? 'Editar Categoría' : 'Nueva Categoría'"></h3>
+                    <button @click="modalOpen = false" class="text-slate-400 hover:text-slate-600 transition-colors">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+
+                <form :action="formAction" method="POST">
+                    <div class="p-6 space-y-5">
+                        <div>
+                            <label for="name" class="block text-sm font-semibold text-slate-700 mb-1">Nombre</label>
+                            <input type="text" name="name" id="name" x-model="name" required
+                                class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                        </div>
+
+                        <div>
+                            <label for="parent_id" class="block text-sm font-semibold text-slate-700 mb-1">Categoría
+                                Padre (Opcional)</label>
+                            <div class="relative">
+                                <select name="parent_id" id="parent_id" x-model="parent_id"
+                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5 appearance-none">
+                                    <option value="">Ninguna (Categoría Principal)</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat.id }}" x-show="currentId != {{ cat.id }}">
+                                        {% for p in cat.parents_path %}{{ p.name }} > {% endfor %}{{ cat.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                                    <i class="fa-solid fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="description"
+                                class="block text-sm font-semibold text-slate-700 mb-1">Descripción</label>
+                            <textarea name="description" id="description" x-model="description" rows="2"
+                                class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"></textarea>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label for="color" class="block text-sm font-semibold text-slate-700 mb-1">Color</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="color" name="color" id="color" x-model="color"
+                                        class="h-10 w-14 p-1 border border-slate-300 rounded-lg cursor-pointer">
+                                    <span class="text-xs text-slate-500 font-mono" x-text="color"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-2">Icono</label>
+                            <input type="hidden" name="icon" x-model="icon">
+
+                            <div
+                                class="grid grid-cols-6 sm:grid-cols-8 gap-2 max-h-48 overflow-y-auto p-3 border border-slate-200 rounded-xl bg-slate-50 custom-scrollbar">
+                                {% set icons = ['fa-box', 'fa-laptop', 'fa-desktop', 'fa-server', 'fa-mobile-screen',
+                                'fa-keyboard', 'fa-mouse', 'fa-print', 'fa-network-wired', 'fa-hard-drive', 'fa-memory',
+                                'fa-microchip', 'fa-headphones', 'fa-camera', 'fa-tv', 'fa-wifi', 'fa-plug',
+                                'fa-battery-full', 'fa-screwdriver-wrench', 'fa-trash-can', 'fa-folder', 'fa-file',
+                                'fa-cloud', 'fa-database', 'fa-lock', 'fa-key', 'fa-shield-halved', 'fa-user',
+                                'fa-users', 'fa-building', 'fa-shop', 'fa-cart-shopping', 'fa-tag', 'fa-tags',
+                                'fa-barcode', 'fa-qrcode'] %}
+
+                                {% for i in icons %}
+                                <button type="button" @click="icon = '{{ i }}'"
+                                    class="w-9 h-9 rounded-lg flex items-center justify-center text-sm transition-all duration-200"
+                                    :class="icon == '{{ i }}' ? 'bg-primary-600 text-white shadow-md scale-110 ring-2 ring-primary-200' : 'bg-white text-slate-400 hover:bg-white hover:text-primary-500 hover:shadow-sm'">
+                                    <i class="fa-solid {{ i }}"></i>
+                                </button>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-3">
+                        <button type="submit"
+                            class="w-full sm:w-auto inline-flex justify-center items-center rounded-xl border border-transparent shadow-sm px-5 py-2.5 bg-primary-600 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all">
+                            <i class="fa-solid fa-check mr-2"></i> Guardar
+                        </button>
+                        <button type="button" @click="modalOpen = false"
+                            class="w-full sm:w-auto inline-flex justify-center items-center rounded-xl border border-slate-300 shadow-sm px-5 py-2.5 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
+{% endblock %}

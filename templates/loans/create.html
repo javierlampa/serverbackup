@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Préstamo - Sistema de Stock{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <!-- Breadcrumbs -->
+    <nav class="flex mb-6 text-sm font-medium text-slate-500" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2">
+            <li><a href="{{ url_for('loans.index') }}" class="hover:text-primary-600 transition-colors">Préstamos</a>
+            </li>
+            <li><i class="fa-solid fa-chevron-right text-[10px] mx-1"></i></li>
+            <li class="text-slate-800">Nuevo Préstamo</li>
+        </ol>
+    </nav>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div class="p-6 border-b border-slate-100 bg-slate-50/50">
+            <h1 class="text-xl font-bold text-slate-800">Registrar Nuevo Préstamo</h1>
+            <p class="text-sm text-slate-500">Completa los datos para el préstamo de equipo</p>
+        </div>
+
+        <form action="{{ url_for('loans.create') }}" method="POST" class="p-6 space-y-6" id="loanForm">
+            <!-- Producto -->
+            <div>
+                <label for="product_id" class="block text-sm font-semibold text-slate-700 mb-2">Producto /
+                    Herramienta</label>
+                <div class="relative">
+                    <select name="product_id" id="product_id" required
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all appearance-none">
+                        <option value="" disabled selected>Selecciona un producto disponible...</option>
+                        {% for p in products %}
+                        <option value="{{ p.id }}">{{ p.name }} ({{ p.code }}) - Stock: {{ p.current_stock }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="absolute left-3 top-3 text-slate-400">
+                        <i class="fa-solid fa-box text-sm"></i>
+                    </div>
+                    <div class="absolute right-3 top-3 text-slate-400 pointer-events-none">
+                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Responsable -->
+                <div>
+                    <label for="borrower_name" class="block text-sm font-semibold text-slate-700 mb-2">Nombre del
+                        Responsable</label>
+                    <div class="relative">
+                        <input type="text" name="borrower_name" id="borrower_name" required placeholder="Ej: Juan Pérez"
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
+                        <div class="absolute left-3 top-3 text-slate-400">
+                            <i class="fa-solid fa-user text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contacto -->
+                <div>
+                    <label for="borrower_contact" class="block text-sm font-semibold text-slate-700 mb-2">Contacto
+                        (Opcional)</label>
+                    <div class="relative">
+                        <input type="text" name="borrower_contact" id="borrower_contact" placeholder="Teléfono o Email"
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
+                        <div class="absolute left-3 top-3 text-slate-400">
+                            <i class="fa-solid fa-phone text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Fecha de Préstamo -->
+                <div>
+                    <label for="loan_date" class="block text-sm font-semibold text-slate-700 mb-2">Fecha de
+                        Préstamo</label>
+                    <div class="relative">
+                        <input type="date" name="loan_date" id="loan_date" required
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
+                        <div class="absolute left-3 top-3 text-slate-400">
+                            <i class="fa-solid fa-calendar-day text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fecha de Devolución -->
+                <div>
+                    <label for="expected_return_date" class="block text-sm font-semibold text-slate-700 mb-2">Fecha
+                        Prevista de Devolución</label>
+                    <div class="relative">
+                        <input type="date" name="expected_return_date" id="expected_return_date"
+                            class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all">
+                        <div class="absolute left-3 top-3 text-slate-400">
+                            <i class="fa-solid fa-calendar-check text-sm"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Firma Digital -->
+            <div x-data="signaturePad()">
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Firma del Responsable</label>
+                <div class="relative bg-slate-100 border-2 border-dashed border-slate-300 rounded-xl overflow-hidden">
+                    <canvas x-ref="canvas" class="w-full h-40 cursor-crosshair"></canvas>
+                    <div class="absolute top-2 right-2 space-x-2">
+                        <button type="button" @click="clear()"
+                            class="px-3 py-1.5 bg-white text-slate-600 text-xs font-bold rounded-lg shadow-sm hover:bg-slate-50 transition-all border border-slate-200">
+                            <i class="fa-solid fa-eraser mr-1"></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+                <input type="hidden" name="signature" x-ref="signatureInput">
+                <p class="mt-1 text-xs text-slate-400 italic">Firma directamente sobre el recuadro gris.</p>
+            </div>
+
+            <!-- Notas -->
+            <div>
+                <label for="notes" class="block text-sm font-semibold text-slate-700 mb-2">Notas / Observaciones</label>
+                <textarea name="notes" id="notes" rows="3" placeholder="Estado del equipo, motivo del préstamo, etc."
+                    class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"></textarea>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex items-center justify-end space-x-3 pt-4 border-t border-slate-100">
+                <a href="{{ url_for('loans.index') }}"
+                    class="px-6 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+                    Cancelar
+                </a>
+                <button type="submit"
+                    class="px-8 py-2.5 bg-primary-600 text-white text-sm font-bold rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-600/20">
+                    Registrar Préstamo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Establecer fecha de hoy por defecto
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('loan_date').value = today;
+    });
+
+    function signaturePad() {
+        return {
+            pad: null,
+            init() {
+                const canvas = this.$refs.canvas;
+                this.pad = new SignaturePad(canvas, {
+                    backgroundColor: 'rgba(255, 255, 255, 0)',
+                    penColor: 'rgb(15, 23, 42)'
+                });
+
+                const resizeCanvas = () => {
+                    const ratio = Math.max(window.devicePixelRatio || 1, 1);
+                    canvas.width = canvas.offsetWidth * ratio;
+                    canvas.height = canvas.offsetHeight * ratio;
+                    canvas.getContext('2d').scale(ratio, ratio);
+                    this.pad.clear();
+                };
+
+                window.addEventListener('resize', resizeCanvas);
+                setTimeout(resizeCanvas, 100);
+
+                this.$el.closest('form').addEventListener('submit', (e) => {
+                    if (!this.pad.isEmpty()) {
+                        this.$refs.signatureInput.value = this.pad.toDataURL();
+                    }
+                });
+            },
+            clear() {
+                this.pad.clear();
+                this.$refs.signatureInput.value = '';
+            }
+        }
+    }
+</script>
+{% endblock %}

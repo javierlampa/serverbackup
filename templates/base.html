@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}Sistema de Stock{% endblock %}</title>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Alpine.js for interactions -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 antialiased h-screen flex overflow-hidden"
+    x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
+
+    <!-- Desktop Sidebar -->
+    <aside
+        class="hidden md:flex flex-col bg-slate-900 text-white transition-all duration-300 ease-in-out shadow-xl z-20 relative"
+        :class="sidebarOpen ? 'w-64' : 'w-20'">
+
+        <!-- Toggle Button -->
+        <button @click="sidebarOpen = !sidebarOpen"
+            class="absolute -right-3 top-8 bg-primary-600 text-white rounded-full p-1 shadow-lg hover:bg-primary-500 transition-colors z-50 border-2 border-slate-50">
+            <i class="fa-solid fa-chevron-left text-xs w-4 h-4 flex items-center justify-center transition-transform duration-300"
+                :class="!sidebarOpen ? 'rotate-180' : ''"></i>
+        </button>
+
+        <!-- Logo Area -->
+        <div class="h-16 flex items-center justify-center border-b border-slate-800/50 transition-all duration-300"
+            :class="sidebarOpen ? 'px-6' : 'px-0'">
+            <div class="flex items-center space-x-3 overflow-hidden whitespace-nowrap">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"
+                    class="w-10 h-10 object-contain rounded-md bg-white/10 p-1">
+                <div class="transition-opacity duration-200" :class="sidebarOpen ? 'opacity-100' : 'opacity-0 w-0'">
+                    <h1 class="text-xl font-bold tracking-tight">Stock <span class="text-primary-400">TLS</span></h1>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 overflow-y-auto py-6 space-y-2 px-3">
+
+            <!-- Dashboard -->
+            <a href="{{ url_for('dashboard.index') }}"
+                class="group flex items-center px-3 py-3 rounded-xl transition-all duration-200 relative overflow-hidden"
+                :class="window.location.pathname == '/dashboard' || window.location.pathname == '/' ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-white'">
+                <i class="fa-solid fa-chart-pie w-6 text-center text-lg transition-colors group-hover:text-white"
+                    :class="window.location.pathname == '/dashboard' || window.location.pathname == '/' ? 'text-white' : 'text-slate-400'"></i>
+                <span class="ml-3 font-medium whitespace-nowrap transition-all duration-300 origin-left"
+                    :class="sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0 w-0'">Dashboard</span>
+
+                <!-- Tooltip for collapsed state -->
+                <div class="absolute left-14 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap shadow-lg border border-slate-700"
+                    :class="!sidebarOpen ? 'block' : 'hidden'" style="left: 4.5rem;">
+                    Dashboard
+                </div>
+            </a>
+
+            <!-- Section Divider -->
+            <div class="my-4 border-t border-slate-800 mx-2" :class="sidebarOpen ? '' : 'hidden'"></div>
+            <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+                :class="sidebarOpen ? 'opacity-100' : 'opacity-0 h-0 mb-0'">Gestión</p>
+
+            <!-- Menu Items Loop -->
+            {% set menu_items = [
+            {'icon': 'fa-box', 'label': 'Productos', 'href': url_for('products.index')},
+            {'icon': 'fa-tags', 'label': 'Categorías', 'href': url_for('categories.index')},
+            {'icon': 'fa-users', 'label': 'Proveedores', 'href': url_for('suppliers.index')}
+            ] %}
+
+            {% for item in menu_items %}
+            <a href="{{ item.href }}"
+                class="group flex items-center px-3 py-3 rounded-xl transition-all duration-200 relative text-slate-400 hover:bg-slate-800 hover:text-white">
+                <i
+                    class="fa-solid {{ item.icon }} w-6 text-center text-lg transition-colors group-hover:text-white"></i>
+                <span class="ml-3 font-medium whitespace-nowrap transition-all duration-300 origin-left"
+                    :class="sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0 w-0'">{{ item.label }}</span>
+
+                <div class="absolute left-14 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap shadow-lg border border-slate-700"
+                    :class="!sidebarOpen ? 'block' : 'hidden'" style="left: 4.5rem;">
+                    {{ item.label }}
+                </div>
+            </a>
+            {% endfor %}
+
+            <!-- Section Divider -->
+            <div class="my-4 border-t border-slate-800 mx-2" :class="sidebarOpen ? '' : 'hidden'"></div>
+            <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+                :class="sidebarOpen ? 'opacity-100' : 'opacity-0 h-0 mb-0'">Operaciones</p>
+
+            {% set op_items = [
+            {'icon': 'fa-file-invoice-dollar', 'label': 'Compras', 'href': url_for('purchases.index')},
+            {'icon': 'fa-right-left', 'label': 'Movimientos', 'href': url_for('movements.index')},
+            {'icon': 'fa-hand-holding-hand', 'label': 'Préstamos', 'href': url_for('loans.index')}
+            ] %}
+
+            {% for item in op_items %}
+            <a href="{{ item.href }}"
+                class="group flex items-center px-3 py-3 rounded-xl transition-all duration-200 relative text-slate-400 hover:bg-slate-800 hover:text-white">
+                <i
+                    class="fa-solid {{ item.icon }} w-6 text-center text-lg transition-colors group-hover:text-white"></i>
+                <span class="ml-3 font-medium whitespace-nowrap transition-all duration-300 origin-left"
+                    :class="sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0 w-0'">{{ item.label }}</span>
+
+                <div class="absolute left-14 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap shadow-lg border border-slate-700"
+                    :class="!sidebarOpen ? 'block' : 'hidden'" style="left: 4.5rem;">
+                    {{ item.label }}
+                </div>
+            </a>
+            {% endfor %}
+
+            {% if current_user.is_admin %}
+            <!-- Admin Section -->
+            <div class="my-4 border-t border-slate-800 mx-2" :class="sidebarOpen ? '' : 'hidden'"></div>
+            <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 transition-opacity duration-300 whitespace-nowrap overflow-hidden"
+                :class="sidebarOpen ? 'opacity-100' : 'opacity-0 h-0 mb-0'">Configuración</p>
+
+            <a href="{{ url_for('users.index') }}"
+                class="group flex items-center px-3 py-3 rounded-xl transition-all duration-200 relative text-slate-400 hover:bg-slate-800 hover:text-white">
+                <i class="fa-solid fa-users-gear w-6 text-center text-lg transition-colors group-hover:text-white"></i>
+                <span class="ml-3 font-medium whitespace-nowrap transition-all duration-300 origin-left"
+                    :class="sidebarOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-0 w-0'">Usuarios</span>
+
+                <div class="absolute left-14 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap shadow-lg border border-slate-700"
+                    :class="!sidebarOpen ? 'block' : 'hidden'" style="left: 4.5rem;">
+                    Usuarios
+                </div>
+            </a>
+            {% endif %}
+
+        </nav>
+
+        <!-- User Profile (Bottom) -->
+        <div class="p-4 border-t border-slate-800">
+            <a href="{{ url_for('auth.logout') }}"
+                class="flex items-center px-3 py-2 rounded-xl transition-colors hover:bg-slate-800 group relative">
+                <div
+                    class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center text-slate-300 group-hover:text-white group-hover:bg-red-500/20 group-hover:text-red-400 transition-all">
+                    <i class="fa-solid fa-arrow-right-from-bracket text-sm"></i>
+                </div>
+                <div class="ml-3 overflow-hidden transition-all duration-300"
+                    :class="sidebarOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'">
+                    <p class="text-sm font-medium text-white truncate">{{ current_user.username }}</p>
+                    <p class="text-xs text-slate-500 truncate">Cerrar Sesión</p>
+                </div>
+
+                <div class="absolute left-14 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50 whitespace-nowrap shadow-lg border border-slate-700"
+                    :class="!sidebarOpen ? 'block' : 'hidden'" style="left: 4.5rem;">
+                    Cerrar Sesión
+                </div>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-50">
+
+        <!-- Mobile Header -->
+        <header
+            class="md:hidden bg-white shadow-sm z-20 flex items-center justify-between px-4 py-3 border-b border-slate-200">
+            <div class="flex items-center space-x-2">
+                <button @click="mobileMenuOpen = !mobileMenuOpen"
+                    class="text-slate-500 hover:text-slate-700 focus:outline-none mr-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"
+                    class="w-8 h-8 object-contain">
+                <span class="font-bold text-lg text-slate-800">Stock <span class="text-primary-600">TLS</span></span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border border-primary-200 text-sm">
+                    {{ current_user.username[0].upper() if current_user.is_authenticated else 'U' }}
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Scrollable Area -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mb-6 space-y-2 max-w-4xl mx-auto">
+                {% for category, message in messages %}
+                <div class="p-4 rounded-xl shadow-sm border-l-4 flex items-center animate-fade-in-down
+                                {% if category == 'success' %}bg-emerald-50 border-emerald-500 text-emerald-700
+                                {% elif category == 'danger' %}bg-rose-50 border-rose-500 text-rose-700
+                                {% else %}bg-blue-50 border-blue-500 text-blue-700{% endif %}">
+                    <i
+                        class="fa-solid {% if category == 'success' %}fa-check-circle{% elif category == 'danger' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %} mr-3 text-lg"></i>
+                    <span class="font-medium">{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Mobile Bottom Navigation (PWA Style) -->
+        <nav
+            class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-around items-center h-16 z-30 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <a href="{{ url_for('dashboard.index') }}"
+                class="flex flex-col items-center justify-center w-full h-full {% if request.endpoint == 'dashboard.index' %}text-primary-600{% else %}text-slate-400 hover:text-slate-600{% endif %}">
+                <i class="fa-solid fa-chart-pie text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Inicio</span>
+            </a>
+
+            <a href="{{ url_for('loans.index') }}"
+                class="flex flex-col items-center justify-center w-full h-full {% if request.endpoint == 'loans.index' %}text-primary-600{% else %}text-slate-400 hover:text-slate-600{% endif %}">
+                <i class="fa-solid fa-hand-holding-hand text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Préstamos</span>
+            </a>
+
+            <!-- Scan Button (Floating) -->
+            <div class="relative -top-6">
+                <button
+                    class="w-14 h-14 rounded-full bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-xl shadow-primary-500/30 flex items-center justify-center transform active:scale-95 transition-all border-4 border-slate-50">
+                    <i class="fa-solid fa-qrcode text-2xl"></i>
+                </button>
+            </div>
+
+            <a href="{{ url_for('purchases.index') }}"
+                class="flex flex-col items-center justify-center w-full h-full {% if request.endpoint == 'purchases.index' %}text-primary-600{% else %}text-slate-400 hover:text-slate-600{% endif %}">
+                <i class="fa-solid fa-file-invoice-dollar text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Compras</span>
+            </a>
+
+            <!-- Menu Button (Toggles Sidebar) -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen"
+                class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-bars text-xl mb-1"></i>
+                <span class="text-[10px] font-medium">Menú</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div x-show="mobileMenuOpen" class="fixed inset-0 z-40 flex md:hidden" role="dialog" aria-modal="true"
+        style="display: none;">
+        <div x-show="mobileMenuOpen" x-transition:enter="transition-opacity ease-linear duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed inset-0 bg-slate-900/80" @click="mobileMenuOpen = false">
+        </div>
+
+        <div x-show="mobileMenuOpen" x-transition:enter="transition ease-in-out duration-300 transform"
+            x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
+            x-transition:leave="transition ease-in-out duration-300 transform" x-transition:leave-start="translate-x-0"
+            x-transition:leave-end="-translate-x-full"
+            class="relative flex-1 flex flex-col max-w-xs w-full bg-slate-900 text-white">
+
+            <div class="absolute top-0 right-0 -mr-12 pt-2">
+                <button @click="mobileMenuOpen = false"
+                    class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                    <span class="sr-only">Close sidebar</span>
+                    <i class="fa-solid fa-xmark text-white text-xl"></i>
+                </button>
+            </div>
+
+            <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                <div class="flex-shrink-0 flex items-center px-4 mb-6">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo"
+                        class="h-8 w-auto mr-3 bg-white/10 rounded p-1">
+                    <span class="text-xl font-bold">Stock <span class="text-primary-400">TLS</span></span>
+                </div>
+                <nav class="mt-5 px-2 space-y-1">
+                    <a href="{{ url_for('dashboard.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'dashboard.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                        <i class="fa-solid fa-chart-pie mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
+                        Dashboard
+                    </a>
+
+                    <div class="mt-6 mb-2 px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">Gestión
+                    </div>
+
+                    <a href="{{ url_for('products.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'products.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                        <i class="fa-solid fa-box mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
+                        Productos
+                    </a>
+                    <a href="{{ url_for('categories.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'categories.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                        <i class="fa-solid fa-tags mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
+                        Categorías
+                    </a>
+                    <a href="{{ url_for('suppliers.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'suppliers.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                        <i class="fa-solid fa-users mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
+                        Proveedores
+                    </a>
+
+                    <div class="mt-6 mb-2 px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Operaciones</div>
+
+                    <a href="{{ url_for('purchases.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'purchases.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                        <i
+                            class="fa-solid fa-file-invoice-dollar mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
+                        Compras
+                    </a>
+                    <a href="{{ url_for('movements.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'movements.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                        <i class="fa-solid fa-right-left mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
+                        Movimientos
+                    </a>
+                    <a href="{{ url_for('loans.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'loans.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                        <i
+                            class="fa-solid fa-hand-holding-hand mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
+                        Préstamos
+                    </a>
+
+                    {% if current_user.is_admin %}
+                    <div class="mt-6 mb-2 px-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Configuración</div>
+                    <a href="{{ url_for('users.index') }}"
+                        class="group flex items-center px-2 py-2 text-base font-medium rounded-md {% if request.endpoint == 'users.index' %}bg-slate-800 text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+                        <i class="fa-solid fa-users-gear mr-4 text-xl text-slate-400 group-hover:text-slate-300"></i>
+                        Usuarios
+                    </a>
+                    {% endif %}
+                </nav>
+            </div>
+            <div class="flex-shrink-0 flex border-t border-slate-800 p-4">
+                <a href="{{ url_for('auth.logout') }}" class="flex-shrink-0 group block w-full">
+                    <div class="flex items-center">
+                        <div
+                            class="inline-block h-10 w-10 rounded-full bg-slate-600 flex items-center justify-center text-white font-bold">
+                            {{ current_user.username[0].upper() if current_user.is_authenticated else 'U' }}
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-base font-medium text-white">{{ current_user.username }}</p>
+                            <p class="text-sm font-medium text-slate-400 group-hover:text-slate-300">Cerrar Sesión</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="flex-shrink-0 w-14" aria-hidden="true">
+            <!-- Force sidebar to shrink to fit close icon -->
+        </div>
+    </div>
+
+</body>
+
+</html>

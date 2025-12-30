@@ -1,0 +1,5 @@
+Sistema: PostgreSQL
+Servidor: localhost
+Usuario: stock_user
+Contraseña: admin123
+Base de datos: stock_inventario

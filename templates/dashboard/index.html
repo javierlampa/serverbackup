@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Stock TLS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Page Header -->
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-slate-800">Tablero <span class="text-slate-500 font-normal text-lg">Panel de
+                Control</span></h1>
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="#"
+                        class="inline-flex items-center text-sm font-medium text-slate-500 hover:text-primary-600">
+                        <i class="fa-solid fa-house mr-2"></i>
+                        Inicio
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fa-solid fa-chevron-right text-slate-400 text-xs mx-1"></i>
+                        <span class="ml-1 text-sm font-medium text-slate-500 md:ml-2">Tablero</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Widgets Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+
+        <!-- Blue Widget (Productos) -->
+        <div class="bg-[#00c0ef] rounded-sm shadow-md overflow-hidden relative group">
+            <div class="p-4 text-white">
+                <h3 class="text-4xl font-bold mb-1">{{ total_products }}</h3>
+                <p class="text-sm font-medium uppercase tracking-wide opacity-90">Productos</p>
+            </div>
+            <div class="absolute top-4 right-4 text-black/10 group-hover:scale-110 transition-transform duration-300">
+                <i class="fa-solid fa-cart-shopping text-6xl"></i>
+            </div>
+            <a href="{{ url_for('products.index') }}"
+                class="block bg-black/10 text-white text-center py-1 text-xs font-medium hover:bg-black/20 transition-colors">
+                Más info <i class="fa-solid fa-circle-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Green Widget (Categorías) -->
+        <div class="bg-[#00a65a] rounded-sm shadow-md overflow-hidden relative group">
+            <div class="p-4 text-white">
+                <h3 class="text-4xl font-bold mb-1">{{ total_categories }}</h3>
+                <p class="text-sm font-medium uppercase tracking-wide opacity-90">Categorías</p>
+            </div>
+            <div class="absolute top-4 right-4 text-black/10 group-hover:scale-110 transition-transform duration-300">
+                <i class="fa-solid fa-clipboard-list text-6xl"></i>
+            </div>
+            <a href="{{ url_for('categories.index') }}"
+                class="block bg-black/10 text-white text-center py-1 text-xs font-medium hover:bg-black/20 transition-colors">
+                Más info <i class="fa-solid fa-circle-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Orange Widget (Proveedores) -->
+        <div class="bg-[#f39c12] rounded-sm shadow-md overflow-hidden relative group">
+            <div class="p-4 text-white">
+                <h3 class="text-4xl font-bold mb-1">{{ total_suppliers }}</h3>
+                <p class="text-sm font-medium uppercase tracking-wide opacity-90">Proveedores</p>
+            </div>
+            <div class="absolute top-4 right-4 text-black/10 group-hover:scale-110 transition-transform duration-300">
+                <i class="fa-solid fa-user-plus text-6xl"></i>
+            </div>
+            <a href="{{ url_for('suppliers.index') }}"
+                class="block bg-black/10 text-white text-center py-1 text-xs font-medium hover:bg-black/20 transition-colors">
+                Más info <i class="fa-solid fa-circle-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Purple Widget (Préstamos) -->
+        <div class="bg-[#605ca8] rounded-sm shadow-md overflow-hidden relative group">
+            <div class="p-4 text-white">
+                <h3 class="text-4xl font-bold mb-1">{{ active_loans }}</h3>
+                <p class="text-sm font-medium uppercase tracking-wide opacity-90">Préstamos</p>
+            </div>
+            <div class="absolute top-4 right-4 text-black/10 group-hover:scale-110 transition-transform duration-300">
+                <i class="fa-solid fa-hand-holding-hand text-6xl"></i>
+            </div>
+            <a href="{{ url_for('loans.index') }}"
+                class="block bg-black/10 text-white text-center py-1 text-xs font-medium hover:bg-black/20 transition-colors">
+                Más info <i class="fa-solid fa-circle-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <!-- Red Widget (Stock Bajo) -->
+        <div class="bg-[#dd4b39] rounded-sm shadow-md overflow-hidden relative group">
+            <div class="p-4 text-white">
+                <h3 class="text-4xl font-bold mb-1">{{ low_stock_count }}</h3>
+                <p class="text-sm font-medium uppercase tracking-wide opacity-90">Stock Bajo</p>
+            </div>
+            <div class="absolute top-4 right-4 text-black/10 group-hover:scale-110 transition-transform duration-300">
+                <i class="fa-solid fa-triangle-exclamation text-6xl"></i>
+            </div>
+            <a href="{{ url_for('products.index') }}"
+                class="block bg-black/10 text-white text-center py-1 text-xs font-medium hover:bg-black/20 transition-colors">
+                Más info <i class="fa-solid fa-circle-arrow-right ml-1"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Charts & Lists Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Low Stock Alerts List -->
+        <div class="bg-white rounded-sm shadow-md border-t-4 border-red-500">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-slate-700">Alertas de Stock</h3>
+                <div class="flex space-x-2 text-slate-400">
+                    <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded">{{
+                        low_stock_products|length }}</span>
+                </div>
+            </div>
+            <div class="p-0 max-h-[400px] overflow-y-auto">
+                <ul class="divide-y divide-slate-100">
+                    {% for product in low_stock_products %}
+                    <li class="p-4 flex items-center hover:bg-slate-50 transition-colors">
+                        <div
+                            class="w-10 h-10 bg-red-50 rounded-md flex items-center justify-center mr-4 shrink-0 text-red-500">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-slate-800 truncate">{{ product.name }}</p>
+                            <p class="text-xs text-slate-500">Stock: <span class="font-bold text-red-600">{{
+                                    product.current_stock }}</span> / Mín: {{ product.min_stock }}</p>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="p-8 text-center text-slate-400">
+                        <i class="fa-solid fa-circle-check text-3xl mb-2 opacity-20 text-green-500"></i>
+                        <p class="text-sm">No hay alertas de stock.</p>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="bg-white rounded-sm shadow-md border-t-4 border-primary-500">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-slate-700">Estado del Inventario</h3>
+                <div class="flex space-x-2 text-slate-400">
+                    <button class="hover:text-slate-600"><i class="fa-solid fa-minus"></i></button>
+                    <button class="hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div class="p-6 flex justify-center items-center">
+                <!-- Placeholder for Chart -->
+                <div class="w-64 h-64 rounded-full border-8 border-slate-100 flex items-center justify-center relative">
+                    <div
+                        class="absolute inset-0 rounded-full border-8 border-primary-500 border-t-transparent border-r-transparent rotate-45">
+                    </div>
+                    <div class="text-center">
+                        <span class="block text-3xl font-bold text-slate-700">{{ total_products }}</span>
+                        <span class="text-xs text-slate-500 uppercase">Total</span>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-100 bg-slate-50">
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <span class="block text-green-500 font-bold"><i class="fa-solid fa-caret-up"></i> 17%</span>
+                        <span class="text-xs text-slate-500">TOTAL REVENUE</span>
+                    </div>
+                    <div>
+                        <span class="block text-yellow-500 font-bold"><i class="fa-solid fa-caret-left"></i> 0%</span>
+                        <span class="text-xs text-slate-500">TOTAL COST</span>
+                    </div>
+                    <div>
+                        <span class="block text-green-500 font-bold"><i class="fa-solid fa-caret-up"></i> 20%</span>
+                        <span class="text-xs text-slate-500">TOTAL PROFIT</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Products List -->
+        <div class="bg-white rounded-sm shadow-md border-t-4 border-primary-500">
+            <div class="p-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-slate-700">Productos Recientes</h3>
+                <div class="flex space-x-2 text-slate-400">
+                    <button class="hover:text-slate-600"><i class="fa-solid fa-minus"></i></button>
+                    <button class="hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div class="p-0">
+                <ul class="divide-y divide-slate-100">
+                    {% for product in recent_products %}
+                    <li class="p-4 flex items-center hover:bg-slate-50 transition-colors">
+                        <div class="w-12 h-12 bg-slate-200 rounded-md flex items-center justify-center mr-4 shrink-0">
+                            {% if product.qr_code_path %}
+                            <i class="fa-solid fa-qrcode text-slate-500"></i>
+                            {% else %}
+                            <i class="fa-solid fa-box text-slate-400"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-primary-600 truncate">{{ product.name }}</p>
+                            <p class="text-xs text-slate-500 truncate">{{ product.description or 'Sin descripción' }}
+                            </p>
+                        </div>
+                        <div class="ml-4 shrink-0">
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                ${{ product.reference_price }}
+                            </span>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="p-8 text-center text-slate-500">
+                        No hay productos recientes.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="p-3 border-t border-slate-100 bg-slate-50 text-center">
+                <a href="{{ url_for('products.index') }}"
+                    class="text-sm font-medium text-primary-600 hover:text-primary-700">Ver todos los
+                    productos</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

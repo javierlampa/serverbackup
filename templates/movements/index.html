@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Movimientos de Stock - Stock TLS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Movimientos de Stock</h1>
+            <p class="text-slate-500 mt-1">Historial completo de entradas, salidas y ajustes</p>
+        </div>
+    </div>
+
+    <!-- Movements List -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        {% if movements %}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50 border-b border-slate-100">
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Fecha</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Producto</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tipo</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Cantidad</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Referencia</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Motivo</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for m in movements %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-sm text-slate-600">
+                            {{ m.created_at.strftime('%d/%m/%Y %H:%M') }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-slate-800">{{ m.product.name }}</div>
+                            <div class="text-xs text-slate-400 font-mono">{{ m.product.code }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if m.movement_type == 'entry' %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <i class="fa-solid fa-arrow-down mr-1"></i> Entrada
+                            </span>
+                            {% elif m.movement_type == 'exit' %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <i class="fa-solid fa-arrow-up mr-1"></i> Salida
+                            </span>
+                            {% else %}
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <i class="fa-solid fa-sliders mr-1"></i> Ajuste
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td
+                            class="px-6 py-4 text-sm font-bold {{ 'text-green-600' if m.movement_type == 'entry' else 'text-red-600' if m.movement_type == 'exit' else 'text-slate-800' }}">
+                            {{ '+' if m.movement_type == 'entry' else '-' if m.movement_type == 'exit' }}{{ m.quantity
+                            }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-600">
+                            {{ m.reference or '---' }}
+                        </td>
+                        <td class="px-6 py-4 text-sm text-slate-500 italic">
+                            {{ m.reason or '---' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center justify-center py-16 text-slate-400">
+            <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center shadow-sm mb-4">
+                <i class="fa-solid fa-right-left text-3xl text-slate-300"></i>
+            </div>
+            <h3 class="text-lg font-medium text-slate-600">No hay movimientos registrados</h3>
+            <p class="text-sm">Los movimientos aparecerán aquí a medida que se realicen compras o préstamos.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

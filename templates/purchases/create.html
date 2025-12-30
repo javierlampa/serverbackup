@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Factura - Stock TLS{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto" x-data="purchaseForm()">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Nueva Factura de Compra</h1>
+            <p class="text-slate-500 mt-1">Registra el ingreso de mercadería y actualiza el stock</p>
+        </div>
+        <a href="{{ url_for('purchases.index') }}"
+            class="text-slate-500 hover:text-slate-700 font-medium flex items-center">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Volver al listado
+        </a>
+    </div>
+
+    <form action="{{ url_for('purchases.create') }}" method="POST" @submit="submitForm($event)">
+        <!-- Hidden field for items data -->
+        <input type="hidden" name="items_data" :value="JSON.stringify(items)">
+        <input type="hidden" name="total_without_vat" :value="subtotal">
+        <input type="hidden" name="total_with_vat" :value="total">
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: Invoice Info -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Invoice Header Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-sm font-semibold text-slate-700">Proveedor *</label>
+                                <button type="button" @click="showSupplierModal = true"
+                                    class="text-primary-600 hover:text-primary-700 text-xs font-medium flex items-center">
+                                    <i class="fa-solid fa-plus mr-1"></i> Nuevo
+                                </button>
+                            </div>
+                            <select name="supplier_id" id="supplier_id" required
+                                class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                <option value="">Selecciona un proveedor</option>
+                                {% for s in suppliers %}
+                                <option value="{{ s.id }}">{{ s.name }} ({{ s.cuit or 'Sin CUIT' }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Nº Factura *</label>
+                            <input type="text" name="invoice_number" required placeholder="0001-00001234"
+                                class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Fecha de Factura</label>
+                            <input type="date" name="purchase_date" value="{{ today }}"
+                                class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-700 mb-1">Método de Pago</label>
+                            <select name="payment_method"
+                                class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Transferencia">Transferencia</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Cuenta Corriente">Cuenta Corriente</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items Table Card -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                        <h3 class="font-bold text-slate-800">Productos en la Factura</h3>
+                        <div class="flex gap-2">
+                            <button type="button" @click="showProductModal = true"
+                                class="bg-white text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-slate-50 transition-colors flex items-center">
+                                <i class="fa-solid fa-plus mr-1.5 text-primary-600"></i> Nuevo Producto
+                            </button>
+                            <button type="button" @click="addItem()"
+                                class="bg-primary-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-primary-700 transition-colors flex items-center">
+                                <i class="fa-solid fa-plus mr-1.5"></i> Agregar Fila
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                    <th class="px-4 py-3 w-24">Código</th>
+                                    <th class="px-4 py-3">Producto</th>
+                                    <th class="px-4 py-3 w-20">Cant.</th>
+                                    <th class="px-4 py-3">Precio Unit.</th>
+                                    <th class="px-4 py-3">IVA %</th>
+                                    <th class="px-4 py-3">Total c/IVA</th>
+                                    <th class="px-4 py-3 text-right"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <template x-for="(item, index) in items" :key="index">
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="px-4 py-3">
+                                            <span
+                                                class="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-1 rounded"
+                                                x-text="getProductCode(item.product_id)"></span>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <select x-model="item.product_id" required
+                                                class="w-full rounded-lg border-slate-300 text-sm py-1.5 focus:ring-primary-500 focus:border-primary-500">
+                                                <option value="">Seleccionar...</option>
+                                                {% for p in products %}
+                                                <option value="{{ p.id }}">{{ p.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <input type="number" x-model.number="item.quantity" min="1" required
+                                                class="w-full rounded-lg border-slate-300 text-sm py-1.5 text-center">
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="relative">
+                                                <span class="absolute left-3 top-1.5 text-slate-400 text-sm">$</span>
+                                                <input type="number" x-model.number="item.unit_price" step="0.01"
+                                                    min="0" required
+                                                    class="w-full rounded-lg border-slate-300 text-sm py-1.5 pl-7">
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <select x-model.number="item.vat_percent"
+                                                class="w-full rounded-lg border-slate-300 text-sm py-1.5">
+                                                <option value="0">0%</option>
+                                                <option value="10.5">10.5%</option>
+                                                <option value="21">21%</option>
+                                                <option value="27">27%</option>
+                                            </select>
+                                        </td>
+                                        <td class="px-4 py-3">
+                                            <div class="text-sm font-bold text-slate-800"
+                                                x-text="'$' + calculateItemTotal(item).toFixed(2)"></div>
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <button type="button" @click="removeItem(index)"
+                                                class="text-slate-400 hover:text-red-600 transition-colors">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div x-show="items.length === 0" class="p-8 text-center text-slate-400 italic text-sm">
+                        No hay productos agregados. Haz clic en "Agregar Fila" para comenzar.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Totals & Summary -->
+            <div class="space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-6">
+                    <h3 class="font-bold text-slate-800 mb-4 flex items-center">
+                        <i class="fa-solid fa-calculator mr-2 text-primary-600"></i> Resumen de Totales
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div class="flex justify-between text-sm text-slate-600">
+                            <span>Subtotal (sin IVA)</span>
+                            <span class="font-medium" x-text="'$' + subtotal.toFixed(2)"></span>
+                        </div>
+                        <div class="flex justify-between text-sm text-slate-600">
+                            <span>IVA Total</span>
+                            <span class="font-medium" x-text="'$' + (total - subtotal).toFixed(2)"></span>
+                        </div>
+                        <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
+                            <span class="text-base font-bold text-slate-800">TOTAL</span>
+                            <span class="text-2xl font-black text-primary-600" x-text="'$' + total.toFixed(2)"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <label class="block text-sm font-semibold text-slate-700 mb-2">Observaciones</label>
+                        <textarea name="notes" rows="3" placeholder="Notas internas sobre esta compra..."
+                            class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"></textarea>
+                    </div>
+
+                    <button type="submit"
+                        class="w-full mt-6 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-primary-600/30 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center">
+                        <i class="fa-solid fa-save mr-2"></i> GUARDAR FACTURA
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Modals -->
+    {% include 'purchases/_modals.html' %}
+</div>
+
+<script>
+    function purchaseForm() {
+        return {
+            items: [],
+            showSupplierModal: false,
+            showProductModal: false,
+
+            // Map of products for quick lookup
+            products: {
+                {% for p in products %}
+        "{{ p.id }}": { "code": "{{ p.code }}", "name": "{{ p.name }}" },
+        {% endfor %}
+    },
+
+    // New Supplier Data
+    newSupplier: {
+        name: '',
+            cuit: '',
+                contact_person: '',
+                    phone: '',
+                        email: '',
+                            address: ''
+    },
+
+    // New Product Data
+    newProduct: {
+        code: '',
+            name: '',
+                category_id: '',
+                    brand: '',
+                        model: ''
+    },
+
+    init() {
+        // Add first item automatically
+        this.addItem();
+    },
+
+    addItem() {
+        this.items.push({
+            product_id: '',
+            quantity: 1,
+            unit_price: 0,
+            vat_percent: 21,
+            total_without_vat: 0,
+            total_with_vat: 0
+        });
+    },
+
+    removeItem(index) {
+        this.items.splice(index, 1);
+    },
+
+    getProductCode(id) {
+        if (!id || !this.products[id]) return '---';
+        return this.products[id].code;
+    },
+
+    calculateItemTotal(item) {
+        const subtotal = item.quantity * item.unit_price;
+        item.total_without_vat = subtotal;
+        item.total_with_vat = subtotal * (1 + item.vat_percent / 100);
+        return item.total_with_vat;
+    },
+
+            get subtotal() {
+        return this.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
+    },
+
+            get total() {
+        return this.items.reduce((sum, item) => sum + this.calculateItemTotal(item), 0);
+    },
+
+            async saveSupplier() {
+        try {
+            const response = await fetch("{{ url_for('suppliers.add') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(this.newSupplier)
+            });
+            const data = await response.json();
+            if (data.success) {
+                // Add to list and select it
+                const select = document.getElementById('supplier_id');
+                const option = new Option(data.supplier.name, data.supplier.id);
+                select.add(option);
+                select.value = data.supplier.id;
+
+                this.showSupplierModal = false;
+                this.newSupplier = { name: '', cuit: '', contact_person: '', phone: '', email: '', address: '' };
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error al guardar el proveedor');
+        }
+    },
+
+            async saveProduct() {
+        try {
+            const response = await fetch("{{ url_for('products.add') }}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(this.newProduct)
+            });
+            const data = await response.json();
+            if (data.success) {
+                alert('Producto creado exitosamente. Se recargará la página para actualizar la lista.');
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error al guardar el producto');
+        }
+    },
+
+    submitForm(e) {
+        if (this.items.length === 0) {
+            e.preventDefault();
+            alert('Debes agregar al menos un producto a la factura.');
+            return;
+        }
+    }
+        }
+    }
+</script>
+{% endblock %}

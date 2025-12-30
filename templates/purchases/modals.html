@@ -1,0 +1,130 @@
+<!-- Supplier Modal -->
+<div x-show="supplierModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+    <div x-show="supplierModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="supplierModalOpen = false">
+    </div>
+
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div x-show="supplierModalOpen" x-transition:enter="ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="bg-white rounded-2xl shadow-2xl transform transition-all max-w-lg w-full overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-800">Nuevo Proveedor</h3>
+                <button type="button" @click="supplierModalOpen = false" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="text" x-model="newSupplierName" placeholder="Nombre de la Empresa *"
+                    class="block w-full rounded-lg border-slate-300 sm:text-sm py-2.5">
+                <input type="text" x-model="newSupplierCuit" placeholder="CUIT/CUIL (XX-XXXXXXXX-X)"
+                    class="block w-full rounded-lg border-slate-300 sm:text-sm py-2.5">
+                <input type="text" x-model="newSupplierContact" placeholder="Persona de Contacto"
+                    class="block w-full rounded-lg border-slate-300 sm:text-sm py-2.5">
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" x-model="newSupplierPhone" placeholder="Teléfono"
+                        class="block w-full rounded-lg border-slate-300 sm:text-sm py-2.5">
+                    <input type="email" x-model="newSupplierEmail" placeholder="Email"
+                        class="block w-full rounded-lg border-slate-300 sm:text-sm py-2.5">
+                </div>
+                <input type="text" x-model="newSupplierAddress" placeholder="Dirección"
+                    class="block w-full rounded-lg border-slate-300 sm:text-sm py-2.5">
+            </div>
+            <div class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-3">
+                <button type="button" @click="
+                    if (newSupplierName) {
+                        fetch('{{ url_for('suppliers.add') }}', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: new URLSearchParams({
+                                name: newSupplierName,
+                                cuit: newSupplierCuit,
+                                contact_person: newSupplierContact,
+                                phone: newSupplierPhone,
+                                email: newSupplierEmail,
+                                address: newSupplierAddress
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const select = document.getElementById('supplier_id');
+                                select.add(new Option(data.name, data.id));
+                                select.value = data.id;
+                                supplierModalOpen = false;
+                                newSupplierName = ''; newSupplierCuit = ''; newSupplierContact = ''; newSupplierPhone = ''; newSupplierEmail = ''; newSupplierAddress = '';
+                            }
+                        });
+                    }
+                "
+                    class="bg-primary-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-primary-700 transition-all">Crear
+                    Proveedor</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Modal -->
+<div x-show="productModalOpen" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+    <div x-show="productModalOpen" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="productModalOpen = false">
+    </div>
+
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div x-show="productModalOpen" x-transition:enter="ease-out duration-300"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="bg-white rounded-2xl shadow-2xl transform transition-all max-w-lg w-full overflow-hidden">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-slate-800">Nuevo Producto</h3>
+                <button type="button" @click="productModalOpen = false" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input type="text" x-model="newProductCode" placeholder="Código *"
+                    class="block w-full rounded-lg border-slate-300 sm:text-sm py-2.5">
+                <input type="text" x-model="newProductName" placeholder="Nombre del Producto *"
+                    class="block w-full rounded-lg border-slate-300 sm:text-sm py-2.5">
+                <select x-model="newProductCategory" class="block w-full rounded-lg border-slate-300 sm:text-sm py-2.5">
+                    <option value="">Seleccionar Categoría</option>
+                    {% for c in categories %}
+                    <option value="{{ c.id }}">{{ c.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-3">
+                <button type="button" @click="
+                    if (newProductCode && newProductName) {
+                        fetch('{{ url_for('products.add') }}', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: new URLSearchParams({
+                                code: newProductCode,
+                                name: newProductName,
+                                category_id: newProductCategory,
+                                status: 'disponible',
+                                condition: 'nuevo',
+                                current_stock: 0
+                            })
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                // Since products are in multiple selects, we might need a reload or a more complex update
+                                // For now, let's just reload to keep it simple and consistent
+                                location.reload();
+                            }
+                        });
+                    }
+                "
+                    class="bg-primary-600 text-white px-5 py-2.5 rounded-xl font-medium hover:bg-primary-700 transition-all">Crear
+                    Producto</button>
+            </div>
+        </div>
+    </div>
+</div>
