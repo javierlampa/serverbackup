@@ -10,6 +10,7 @@ ALTER TABLE loans RENAME TO prestamos;
 ALTER TABLE stock_movements RENAME TO movimientos_stock;
 ALTER TABLE purchases RENAME TO compras;
 ALTER TABLE purchase_items RENAME TO items_compra;
+ALTER TABLE notifications RENAME TO notificaciones;
 
 -- Update foreign key constraints (PostgreSQL usually handles this automatically if renaming tables, 
 -- but it's good to verify if any explicit constraint names need changing)
