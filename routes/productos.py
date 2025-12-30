@@ -36,10 +36,14 @@ def index():
     categories = Categoria.query.order_by(Categoria.name).all()
     suppliers = Proveedor.query.order_by(Proveedor.name).all()
     
+    # Get all products for the "parent" selector (PCs, Notebooks, etc.)
+    all_products = Producto.query.order_by(Producto.name).all()
+    
     return render_template('productos/index.html', 
                          products=products,
                          categories=categories,
                          suppliers=suppliers,
+                         all_products=all_products,
                          selected_category=category_id,
                          selected_status=status,
                          selected_supplier=supplier_id)
@@ -61,6 +65,12 @@ def add():
     notes = request.form.get('notes')
     category_id = request.form.get('category_id', type=int)
     supplier_id = request.form.get('supplier_id', type=int)
+    ip_address = request.form.get('ip_address')
+    parent_id = request.form.get('parent_id', type=int)
+    ip_address = request.form.get('ip_address')
+    parent_id = request.form.get('parent_id', type=int)
+    ip_address = request.form.get('ip_address')
+    parent_id = request.form.get('parent_id', type=int)
     
     if not code or not name:
         flash('El código y el nombre son obligatorios', 'danger')
@@ -94,7 +104,9 @@ def add():
         reference_price=reference_price,
         notes=notes,
         category_id=category_id if category_id else None,
-        supplier_id=supplier_id if supplier_id else None
+        supplier_id=supplier_id if supplier_id else None,
+        ip_address=ip_address,
+        parent_id=parent_id if parent_id else None
     )
     
     db.session.add(new_product)
@@ -151,6 +163,10 @@ def edit(id):
     product.location = request.form.get('location')
     product.reference_price = request.form.get('reference_price', type=float)
     product.notes = request.form.get('notes')
+    product.ip_address = request.form.get('ip_address')
+    
+    parent_id = request.form.get('parent_id', type=int)
+    product.parent_id = parent_id if parent_id and parent_id != product.id else None
     
     category_id = request.form.get('category_id', type=int)
     supplier_id = request.form.get('supplier_id', type=int)

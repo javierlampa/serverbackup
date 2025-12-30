@@ -30,6 +30,10 @@ class Producto(db.Model):
     qr_code_path = db.Column(db.String(255))
     notes = db.Column(db.Text)
     
+    # Seguimiento de IP y Componentes
+    ip_address = db.Column(db.String(45)) # Soporta IPv6
+    parent_id = db.Column(db.Integer, db.ForeignKey('productos.id'))
+    
     # Foreign Keys
     category_id = db.Column(db.Integer, db.ForeignKey('categorias.id'))
     supplier_id = db.Column(db.Integer, db.ForeignKey('proveedores.id'))
@@ -40,6 +44,12 @@ class Producto(db.Model):
     # Relaciones
     movimientos = db.relationship('MovimientoStock', backref='producto', lazy='dynamic')
     prestamos = db.relationship('Prestamo', backref='producto', lazy='dynamic')
+    
+    # Relación para componentes (auto-referencia)
+    componentes = db.relationship('Producto', 
+                                backref=db.backref('equipo_padre', remote_side=[id]),
+                                lazy='dynamic')
+
     # Nota: La relación con compras se maneja a través de PurchaseItem.product
 
     def to_dict(self):
