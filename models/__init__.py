@@ -6,5 +6,6 @@ from .movimiento_stock import MovimientoStock
 from .prestamo import Prestamo
 from .compra import Compra
 from .notificacion import Notificacion
+from .historial_precio import HistorialPrecio
 from .item_compra import ItemCompra
 

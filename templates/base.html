@@ -102,6 +102,15 @@
             </div>
         </div>
 
+        <!-- Global Search (Sidebar) -->
+        <div class="px-3 mt-4 mb-2 transition-all duration-300" :class="sidebarOpen ? 'block' : 'hidden'">
+            <form action="{{ url_for('productos.index') }}" method="GET" class="relative">
+                <input type="text" name="q" placeholder="Buscar..." value="{{ search_query or '' }}"
+                    class="w-full bg-slate-800 text-slate-300 text-sm rounded-xl py-2 pl-10 pr-4 border-none focus:ring-2 focus:ring-primary-500 transition-all">
+                <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+            </form>
+        </div>
+
         <!-- Navigation -->
         <nav class="flex-1 overflow-y-auto py-6 space-y-2 px-3">
 
@@ -232,6 +241,16 @@
                     class="w-8 h-8 object-contain">
                 <span class="font-bold text-lg text-slate-800">Stock <span class="text-primary-600">TLS</span></span>
             </div>
+
+            <!-- Global Search (Mobile Header) -->
+            <div class="flex-1 mx-4 max-w-xs">
+                <form action="{{ url_for('productos.index') }}" method="GET" class="relative">
+                    <input type="text" name="q" placeholder="Buscar..." value="{{ search_query or '' }}"
+                        class="w-full bg-slate-100 text-slate-600 text-xs rounded-lg py-1.5 pl-8 pr-3 border-none focus:ring-2 focus:ring-primary-500 transition-all">
+                    <i class="fa-solid fa-search absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                </form>
+            </div>
+
             <div class="flex items-center space-x-3">
                 <div
                     class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-bold border border-primary-200 text-sm">

@@ -17,6 +17,7 @@ def index():
     category_id = request.args.get('category_id', type=int)
     status = request.args.get('status')
     supplier_id = request.args.get('supplier_id', type=int)
+    search_query = request.args.get('q')
     
     # Base query
     query = Producto.query
@@ -28,6 +29,14 @@ def index():
         query = query.filter_by(status=status)
     if supplier_id:
         query = query.filter_by(supplier_id=supplier_id)
+    if search_query:
+        query = query.filter(
+            (Producto.name.ilike(f'%{search_query}%')) |
+            (Producto.code.ilike(f'%{search_query}%')) |
+            (Producto.serial_number.ilike(f'%{search_query}%')) |
+            (Producto.brand.ilike(f'%{search_query}%')) |
+            (Producto.model.ilike(f'%{search_query}%'))
+        )
     
     # Get all products
     products = query.order_by(Producto.name).all()
@@ -46,7 +55,8 @@ def index():
                          all_products=all_products,
                          selected_category=category_id,
                          selected_status=status,
-                         selected_supplier=supplier_id)
+                         selected_supplier=supplier_id,
+                         search_query=search_query)
 
 @productos_bp.route('/add', methods=['POST'])
 @login_required
@@ -126,6 +136,7 @@ def add():
 @productos_bp.route('/edit/<int:id>', methods=['POST'])
 @login_required
 def edit(id):
+    from models.historial_precio import HistorialPrecio
     product = Producto.query.get_or_404(id)
     
     code = request.form.get('code')
@@ -161,7 +172,15 @@ def edit(id):
     product.current_stock = request.form.get('current_stock', 0, type=int)
     product.min_stock = request.form.get('min_stock', 0, type=int)
     product.location = request.form.get('location')
-    product.reference_price = request.form.get('reference_price', type=float)
+    new_price = request.form.get('reference_price', type=float)
+    
+    # Record price history if changed
+    if new_price is not None and (product.reference_price is None or abs(float(product.reference_price) - new_price) > 0.01):
+        history = HistorialPrecio(product_id=product.id, price=new_price)
+        db.session.add(history)
+        product.last_price_update = datetime.utcnow()
+    
+    product.reference_price = new_price
     product.notes = request.form.get('notes')
     product.ip_address = request.form.get('ip_address')
     
