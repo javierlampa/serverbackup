@@ -43,6 +43,14 @@ def create_app(config_class=Config):
 
     from routes.usuarios import usuarios_bp
     app.register_blueprint(usuarios_bp)
+
+    from routes.mantenimientos import mantenimientos_bp
+    app.register_blueprint(mantenimientos_bp)
+
+    from routes.salidas import salidas_bp
+    app.register_blueprint(salidas_bp)
+
+
     
     @app.route('/')
     def index():

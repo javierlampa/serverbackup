@@ -9,6 +9,9 @@ class Compra(db.Model):
     invoice_number = db.Column(db.String(50), nullable=False)
     purchase_date = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Status: 'pendiente', 'verificada'
+    status = db.Column(db.String(20), default='pendiente')
+    
     # Totales de la factura
     total_without_vat = db.Column(db.Numeric(10, 2), default=0)
     total_with_vat = db.Column(db.Numeric(10, 2), default=0)

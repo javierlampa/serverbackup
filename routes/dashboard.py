@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app import db
 from models.producto import Producto
 from models.prestamo import Prestamo
+from models.compra import Compra
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -18,7 +19,11 @@ def index():
     low_stock_count = Producto.query.filter(Producto.current_stock <= Producto.min_stock).count()
     active_loans = Prestamo.query.filter_by(status='active').count()
     total_categories = Categoria.query.count()
+    total_categories = Categoria.query.count()
     total_suppliers = Proveedor.query.count()
+    
+    # Alertas
+    pending_purchases_count = Compra.query.filter_by(status='pendiente').count()
     
     # Productos recientes (últimos 5)
     recent_products = Producto.query.order_by(Producto.created_at.desc()).limit(5).all()
@@ -29,4 +34,5 @@ def index():
                            active_loans=active_loans,
                            total_categories=total_categories,
                            total_suppliers=total_suppliers,
+                           pending_purchases_count=pending_purchases_count,
                            recent_products=recent_products)

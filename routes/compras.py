@@ -9,6 +9,9 @@ from models.movimiento_stock import MovimientoStock
 from models.categoria import Categoria
 from datetime import datetime
 import json
+import os
+from werkzeug.utils import secure_filename
+from flask import current_app
 
 compras_bp = Blueprint('compras', __name__, url_prefix='/compras')
 
@@ -114,3 +117,57 @@ def create():
 def view(id):
     purchase = Compra.query.get_or_404(id)
     return render_template('compras/view.html', purchase=purchase)
+
+@compras_bp.route('/review/<int:id>')
+@login_required
+def review(id):
+    purchase = Compra.query.get_or_404(id)
+    return render_template('compras/review.html', purchase=purchase)
+
+@compras_bp.route('/upload-image/<int:product_id>', methods=['POST'])
+@login_required
+def upload_product_image(product_id):
+    if 'image' not in request.files:
+        return jsonify({'success': False, 'message': 'No se envió ninguna imagen'})
+    
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'success': False, 'message': 'No se seleccionó ningún archivo'})
+        
+    if file:
+        try:
+            product = Producto.query.get_or_404(product_id)
+            filename = secure_filename(file.filename)
+            upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'productos')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            unique_filename = f"{timestamp}_{filename}"
+            file.save(os.path.join(upload_folder, unique_filename))
+            
+            # Eliminar imagen anterior si existe
+            if product.image_path:
+                old_image_path = os.path.join(current_app.root_path, 'static', product.image_path)
+                if os.path.exists(old_image_path):
+                    try:
+                        os.remove(old_image_path)
+                    except:
+                        pass
+            
+            product.image_path = f"uploads/productos/{unique_filename}"
+            db.session.commit()
+            
+            return jsonify({'success': True, 'image_path': product.image_path})
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)})
+            
+    return jsonify({'success': False, 'message': 'Error desconocido'})
+
+@compras_bp.route('/verify/<int:id>', methods=['POST'])
+@login_required
+def verify(id):
+    purchase = Compra.query.get_or_404(id)
+    purchase.status = 'verificada'
+    db.session.commit()
+    flash('Factura verificada exitosamente', 'success')
+    return redirect(url_for('compras.index'))

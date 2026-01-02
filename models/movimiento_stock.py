@@ -13,4 +13,5 @@ class MovimientoStock(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     reason = db.Column(db.String(200))
     reference = db.Column(db.String(100)) # e.g., Purchase Invoice ID or Loan ID
+    signature = db.Column(db.Text) # Base64 signature
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

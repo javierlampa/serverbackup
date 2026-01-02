@@ -93,9 +93,8 @@
                                     <th class="px-4 py-3 w-24">Código</th>
                                     <th class="px-4 py-3">Producto</th>
                                     <th class="px-4 py-3 w-20">Cant.</th>
-                                    <th class="px-4 py-3">Precio Unit.</th>
-                                    <th class="px-4 py-3">IVA %</th>
-                                    <th class="px-4 py-3">Total c/IVA</th>
+                                    <th class="px-4 py-3">Precio Unit. (Neto)</th>
+                                    <th class="px-4 py-3">Subtotal</th>
                                     <th class="px-4 py-3 text-right"></th>
                                 </tr>
                             </thead>
@@ -129,17 +128,8 @@
                                             </div>
                                         </td>
                                         <td class="px-4 py-3">
-                                            <select x-model.number="item.vat_percent"
-                                                class="w-full rounded-lg border-slate-300 text-sm py-1.5">
-                                                <option value="0">0%</option>
-                                                <option value="10.5">10.5%</option>
-                                                <option value="21">21%</option>
-                                                <option value="27">27%</option>
-                                            </select>
-                                        </td>
-                                        <td class="px-4 py-3">
-                                            <div class="text-sm font-bold text-slate-800"
-                                                x-text="'$' + calculateItemTotal(item).toFixed(2)"></div>
+                                            <div class="text-sm font-medium text-slate-800"
+                                                x-text="'$' + (item.quantity * item.unit_price).toFixed(2)"></div>
                                         </td>
                                         <td class="px-4 py-3 text-right">
                                             <button type="button" @click="removeItem(index)"
@@ -168,15 +158,22 @@
 
                     <div class="space-y-3">
                         <div class="flex justify-between text-sm text-slate-600">
-                            <span>Subtotal (sin IVA)</span>
+                            <span>Subtotal Neto</span>
                             <span class="font-medium" x-text="'$' + subtotal.toFixed(2)"></span>
                         </div>
-                        <div class="flex justify-between text-sm text-slate-600">
-                            <span>IVA Total</span>
-                            <span class="font-medium" x-text="'$' + (total - subtotal).toFixed(2)"></span>
+
+                        <!-- Manual Tax Entry -->
+                        <div class="flex justify-between items-center text-sm text-slate-600">
+                            <span>Impuestos / IVA</span>
+                            <div class="relative w-32">
+                                <span class="absolute left-3 top-1.5 text-slate-400 text-sm">$</span>
+                                <input type="number" x-model.number="tax_amount" step="0.01" min="0"
+                                    class="w-full rounded-lg border-slate-300 text-sm py-1.5 pl-7 text-right">
+                            </div>
                         </div>
+
                         <div class="border-t border-slate-100 pt-3 flex justify-between items-center">
-                            <span class="text-base font-bold text-slate-800">TOTAL</span>
+                            <span class="text-base font-bold text-slate-800">TOTAL FINAL</span>
                             <span class="text-2xl font-black text-primary-600" x-text="'$' + total.toFixed(2)"></span>
                         </div>
                     </div>
@@ -191,6 +188,9 @@
                         class="w-full mt-6 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-primary-600/30 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center">
                         <i class="fa-solid fa-save mr-2"></i> GUARDAR FACTURA
                     </button>
+                    <p class="text-xs text-center text-slate-400 mt-2">
+                        La factura quedará en estado <strong>Pendiente</strong> hasta su revisión.
+                    </p>
                 </div>
             </div>
         </div>
@@ -204,6 +204,7 @@
     function purchaseForm() {
         return {
             items: [],
+            tax_amount: 0,
             showSupplierModal: false,
             showProductModal: false,
 
@@ -243,7 +244,7 @@
             product_id: '',
             quantity: 1,
             unit_price: 0,
-            vat_percent: 21,
+            vat_percent: 0,
             total_without_vat: 0,
             total_with_vat: 0
         });
@@ -261,16 +262,16 @@
     calculateItemTotal(item) {
         const subtotal = item.quantity * item.unit_price;
         item.total_without_vat = subtotal;
-        item.total_with_vat = subtotal * (1 + item.vat_percent / 100);
-        return item.total_with_vat;
+        item.total_with_vat = subtotal; // Net equals gross per item in this simplified mode
+        return subtotal;
     },
 
             get subtotal() {
         return this.items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
     },
-
+    
             get total() {
-        return this.items.reduce((sum, item) => sum + this.calculateItemTotal(item), 0);
+        return this.subtotal + (this.tax_amount || 0);
     },
 
             async saveSupplier() {

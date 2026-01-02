@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block title %}Revisión de Compra #{{ purchase.invoice_number }} - Stock TLS{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto" x-data="{
+    uploading: false,
+    
+    async uploadImage(productId, event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        this.uploading = true;
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const response = await fetch(`/compras/upload-image/${productId}`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                // Update image preview
+                const imgElement = document.getElementById(`img-${productId}`);
+                imgElement.src = `{{ url_for('static', filename='') }}${data.image_path}`;
+                imgElement.classList.remove('hidden');
+                document.getElementById(`placeholder-${productId}`).classList.add('hidden');
+                
+                // Show success toast (optional)
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error al subir la imagen');
+        } finally {
+            this.uploading = false;
+        }
+    }
+}">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Revisión Técnica</h1>
+                <span
+                    class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm font-medium border border-orange-200">
+                    Pendiente
+                </span>
+            </div>
+            <p class="text-slate-500 mt-1">Factura #{{ purchase.invoice_number }} - {{ purchase.proveedor.name }}</p>
+        </div>
+        <a href="{{ url_for('compras.index') }}"
+            class="text-slate-500 hover:text-slate-700 font-medium flex items-center">
+            <i class="fa-solid fa-arrow-left mr-2"></i> Volver
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: Products List -->
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 bg-slate-50">
+                    <h3 class="font-bold text-slate-800">Productos a Verificar</h3>
+                    <p class="text-xs text-slate-500 mt-1">Sube las fotos de los productos recibidos para completar la
+                        verificación.</p>
+                </div>
+
+                <div class="divide-y divide-slate-100">
+                    {% for item in purchase.items %}
+                    <div class="p-4 flex items-start gap-4 hover:bg-slate-50 transition-colors">
+                        <!-- Image Upload Section -->
+                        <div class="flex-shrink-0">
+                            <div
+                                class="w-24 h-24 bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group cursor-pointer">
+                                <input type="file" accept="image/*" @change="uploadImage({{ item.product_id }}, $event)"
+                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+
+                                <!-- Preview Image -->
+                                <img id="img-{{ item.product_id }}"
+                                    src="{% if item.producto.image_path %}{{ url_for('static', filename=item.producto.image_path) }}{% endif %}"
+                                    class="w-full h-full object-cover {% if not item.producto.image_path %}hidden{% endif %}">
+
+                                <!-- Placeholder -->
+                                <div id="placeholder-{{ item.product_id }}"
+                                    class="text-center p-2 {% if item.producto.image_path %}hidden{% endif %}">
+                                    <i class="fa-solid fa-camera text-slate-400 text-xl mb-1"></i>
+                                    <span class="block text-[10px] text-slate-400">Subir Foto</span>
+                                </div>
+
+                                <!-- Overlay -->
+                                <div
+                                    class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fa-solid fa-pen text-white"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1">
+                                <h4 class="text-base font-semibold text-slate-800">{{ item.producto.name }}</h4>
+                                <span class="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{{
+                                    item.producto.code }}</span>
+                            </div>
+                            <p class="text-sm text-slate-600 mb-2">{{ item.producto.description or 'Sin descripción' }}
+                            </p>
+
+                            <div class="flex items-center gap-4 text-sm">
+                                <span class="flex items-center text-slate-500">
+                                    <i class="fa-solid fa-box mr-1.5 text-xs"></i>
+                                    Cant: <strong>{{ item.quantity }}</strong>
+                                </span>
+                                <span class="flex items-center text-slate-500">
+                                    <i class="fa-solid fa-tag mr-1.5 text-xs"></i>
+                                    {{ item.producto.category.name if item.producto.category else 'Sin categoría' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Actions -->
+        <div class="space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-6">
+                <h3 class="font-bold text-slate-800 mb-4">Acciones</h3>
+
+                <div class="text-sm text-slate-600 mb-6">
+                    <p class="mb-2">Una vez que hayas verificado que todos los productos coinciden con la factura y
+                        hayas cargado las fotos correspondientes, confirma la revisión.</p>
+                    <p>Esto marcará la compra como <strong>Verificada</strong>.</p>
+                </div>
+
+                <form action="{{ url_for('compras.verify', id=purchase.id) }}" method="POST">
+                    <button type="submit"
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-green-600/30 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center">
+                        <i class="fa-solid fa-check-circle mr-2"></i> CONFIRMAR REVISIÓN
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

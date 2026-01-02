@@ -4,17 +4,27 @@ from sqlalchemy import text
 def update_db():
     app = create_app()
     with app.app_context():
+        # Crear tabla mantenimientos
         try:
-            # Intentar agregar la columna signature a la tabla loans
-            db.session.execute(text('ALTER TABLE loans ADD COLUMN signature TEXT'))
+            sql = """
+            CREATE TABLE IF NOT EXISTS mantenimientos (
+                id SERIAL PRIMARY KEY,
+                producto_id INTEGER NOT NULL REFERENCES productos(id) ON DELETE CASCADE,
+                tipo VARCHAR(50) NOT NULL,
+                descripcion TEXT NOT NULL,
+                costo NUMERIC(10, 2) DEFAULT 0.00,
+                fecha_inicio TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                fecha_fin TIMESTAMP WITHOUT TIME ZONE,
+                estado VARCHAR(20) DEFAULT 'en_proceso',
+                tecnico VARCHAR(100)
+            );
+            """
+            db.session.execute(text(sql))
             db.session.commit()
-            print("Columna 'signature' agregada correctamente a la tabla 'loans'.")
+            print("¡Tabla 'mantenimientos' creada correctamente!")
         except Exception as e:
             db.session.rollback()
-            if "duplicate column name" in str(e).lower() or "already exists" in str(e).lower():
-                print("La columna 'signature' ya existe.")
-            else:
-                print(f"Error al actualizar la base de datos: {e}")
+            print(f"Error: {e}")
 
 if __name__ == '__main__':
     update_db()

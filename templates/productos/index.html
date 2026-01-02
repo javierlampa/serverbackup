@@ -9,6 +9,9 @@
         isEdit: false, 
         currentId: null, 
         formAction: '', 
+        activeTab: 'info', // Tabs: info, inventory, details, media
+        
+        // Form Fields
         code: '',
         name: '', 
         description: '', 
@@ -26,6 +29,10 @@
         supplier_id: '',
         ip_address: '',
         parent_id: '',
+        fecha_fin_vida_util: '',
+        precio_dolar: '',
+        image_path: '',
+        image_preview: null,
         
         // New Supplier Data
         newSupplierName: '',
@@ -33,7 +40,40 @@
         newSupplierContact: '',
         newSupplierPhone: '',
         newSupplierEmail: '',
-        newSupplierAddress: ''
+        newSupplierAddress: '',
+
+        resetForm() {
+            this.code = '';
+            this.name = '';
+            this.description = '';
+            this.brand = '';
+            this.model = '';
+            this.serial_number = '';
+            this.status = 'disponible';
+            this.condition = 'nuevo';
+            this.current_stock = 0;
+            this.min_stock = 0;
+            this.location = '';
+            this.reference_price = '';
+            this.notes = '';
+            this.category_id = '';
+            this.supplier_id = '';
+            this.ip_address = '';
+            this.parent_id = '';
+            this.fecha_fin_vida_util = '';
+            this.precio_dolar = '';
+            this.image_path = '';
+            this.image_preview = null;
+            this.activeTab = 'info';
+            document.getElementById('image').value = ''; // Reset file input
+        },
+
+        handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                this.image_preview = URL.createObjectURL(file);
+            }
+        }
     }">
 
     <!-- Header -->
@@ -42,8 +82,7 @@
             <h1 class="text-3xl font-bold text-slate-800 tracking-tight">Productos</h1>
             <p class="text-slate-500 mt-1">Gestiona tu inventario de productos</p>
         </div>
-        <button
-            @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('productos.add') }}'; code=''; name=''; description=''; brand=''; model=''; serial_number=''; status='disponible'; condition='nuevo'; current_stock=0; min_stock=0; location=''; reference_price=''; notes=''; category_id=''; supplier_id=''; ip_address=''; parent_id=''"
+        <button @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('productos.add') }}'; resetForm()"
             class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl shadow-lg shadow-primary-600/20 transition-all transform hover:scale-105 flex items-center font-medium">
             <i class="fa-solid fa-plus mr-2"></i> Nuevo Producto
         </button>
@@ -131,6 +170,11 @@
                         </div>
                         {% endif %}
 
+                        {% if product.image_path %}
+                        <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.name }}"
+                            class="w-10 h-10 rounded-lg object-cover shadow-sm ml-2">
+                        {% endif %}
+
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center space-x-2 mb-1">
                                 <span class="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">{{
@@ -198,6 +242,18 @@
                                     En: {{ product.equipo_padre.name }}
                                 </span>
                                 {% endif %}
+                                {% if product.fecha_fin_vida_util %}
+                                <span class="flex items-center text-slate-500" title="Fin de Vida Útil">
+                                    <i class="fa-solid fa-calendar-xmark mr-1 text-xs"></i>
+                                    Vence: {{ product.fecha_fin_vida_util.strftime('%d/%m/%Y') }}
+                                </span>
+                                {% endif %}
+                                {% if product.precio_dolar %}
+                                <span class="flex items-center text-green-600 font-medium" title="Precio USD">
+                                    <i class="fa-solid fa-dollar-sign mr-1 text-xs"></i>
+                                    {{ product.precio_dolar }} USD
+                                </span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -215,6 +271,15 @@
                         </div>
 
                         <div class="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {% if product.categoria and ('PC' in product.categoria.name.upper() or 'NOTEBOOK' in
+                            product.categoria.name.upper()) %}
+                            <a href="{{ url_for('mantenimientos.index') }}"
+                                class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-orange-600 hover:border-orange-300 flex items-center justify-center transition-colors"
+                                title="Enviar a Mantenimiento">
+                                <i class="fa-solid fa-screwdriver-wrench text-xs"></i>
+                            </a>
+                            {% endif %}
+
                             {% if product.qr_code_path %}
                             <a href="{{ url_for('productos.download_qr', id=product.id) }}"
                                 class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-green-600 hover:border-green-300 flex items-center justify-center transition-colors"
@@ -224,7 +289,7 @@
                             {% endif %}
 
                             <button
-                                @click="modalOpen = true; isEdit = true; currentId = {{ product.id }}; formAction = '/productos/edit/{{ product.id }}'; code = '{{ product.code }}'; name = '{{ product.name }}'; description = '{{ product.description or '' }}'; brand = '{{ product.brand or '' }}'; model = '{{ product.model or '' }}'; serial_number = '{{ product.serial_number or '' }}'; status = '{{ product.status }}'; condition = '{{ product.condition or 'nuevo' }}'; current_stock = {{ product.current_stock }}; min_stock = {{ product.min_stock }}; location = '{{ product.location or '' }}'; reference_price = '{{ product.reference_price or '' }}'; notes = '{{ product.notes or '' }}'; category_id = '{{ product.category_id or '' }}'; supplier_id = '{{ product.supplier_id or '' }}'; ip_address = '{{ product.ip_address or '' }}'; parent_id = '{{ product.parent_id or '' }}'"
+                                @click="modalOpen = true; isEdit = true; currentId = {{ product.id }}; formAction = '/productos/edit/{{ product.id }}'; code = '{{ product.code }}'; name = '{{ product.name }}'; description = '{{ product.description or '' }}'; brand = '{{ product.brand or '' }}'; model = '{{ product.model or '' }}'; serial_number = '{{ product.serial_number or '' }}'; status = '{{ product.status }}'; condition = '{{ product.condition or 'nuevo' }}'; current_stock = {{ product.current_stock }}; min_stock = {{ product.min_stock }}; location = '{{ product.location or '' }}'; reference_price = '{{ product.reference_price or '' }}'; notes = '{{ product.notes or '' }}'; category_id = '{{ product.category_id or '' }}'; supplier_id = '{{ product.supplier_id or '' }}'; ip_address = '{{ product.ip_address or '' }}'; parent_id = '{{ product.parent_id or '' }}'; fecha_fin_vida_util = '{{ product.fecha_fin_vida_util or '' }}'; precio_dolar = '{{ product.precio_dolar or '' }}'; image_path = '{{ product.image_path or '' }}'; image_preview = image_path ? '{{ url_for('static', filename='') }}' + image_path : null"
                                 class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-primary-600 hover:border-primary-300 flex items-center justify-center transition-colors"
                                 title="Editar">
                                 <i class="fa-solid fa-pen text-xs"></i>
@@ -252,7 +317,7 @@
             <h3 class="text-lg font-medium text-slate-600">No hay productos</h3>
             <p class="text-sm mb-6">Comienza agregando el primer producto a tu inventario.</p>
             <button
-                @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('productos.add') }}'; code=''; name=''; description=''; brand=''; model=''; serial_number=''; status='disponible'; condition='nuevo'; current_stock=0; min_stock=0; location=''; reference_price=''; notes=''; category_id=''; supplier_id=''; ip_address=''; parent_id=''"
+                @click="modalOpen = true; isEdit = false; formAction = '{{ url_for('productos.add') }}'; resetForm()"
                 class="text-primary-600 font-medium hover:text-primary-700 flex items-center">
                 <i class="fa-solid fa-plus mr-2"></i> Crear Producto
             </button>
@@ -260,7 +325,7 @@
         {% endif %}
     </div>
 
-    <!-- Product Modal -->
+    <!-- Product Modal with Tabs -->
     <div x-show="modalOpen" class="fixed inset-0 z-40 overflow-y-auto" aria-labelledby="modal-title" role="dialog"
         aria-modal="true" style="display: none;">
 
@@ -276,10 +341,11 @@
                 x-transition:enter-end="opacity-100 scale-100 translate-y-0" x-transition:leave="ease-in duration-200"
                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                 x-transition:leave-end="opacity-0 scale-95 translate-y-4"
-                class="bg-white rounded-2xl shadow-2xl transform transition-all max-w-2xl w-full overflow-hidden max-h-[90vh] overflow-y-auto">
+                class="bg-white rounded-2xl shadow-2xl transform transition-all max-w-3xl w-full overflow-hidden max-h-[90vh] flex flex-col">
 
+                <!-- Modal Header -->
                 <div
-                    class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center sticky top-0 z-10">
+                    class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center flex-shrink-0">
                     <h3 class="text-lg font-bold text-slate-800" x-text="isEdit ? 'Editar Producto' : 'Nuevo Producto'">
                     </h3>
                     <button @click="modalOpen = false" class="text-slate-400 hover:text-slate-600 transition-colors">
@@ -287,180 +353,273 @@
                     </button>
                 </div>
 
-                <form :action="formAction" method="POST">
-                    <div class="p-6 space-y-5">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label for="code" class="block text-sm font-semibold text-slate-700 mb-1">Código
-                                    *</label>
-                                <input type="text" name="code" id="code" x-model="code" required
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                            </div>
+                <form :action="formAction" method="POST" enctype="multipart/form-data"
+                    class="flex flex-col flex-1 overflow-hidden">
 
-                            <div>
-                                <label for="name" class="block text-sm font-semibold text-slate-700 mb-1">Nombre
-                                    *</label>
-                                <input type="text" name="name" id="name" x-model="name" required
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="description"
-                                class="block text-sm font-semibold text-slate-700 mb-1">Descripción</label>
-                            <textarea name="description" id="description" x-model="description" rows="2"
-                                class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"></textarea>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <div>
-                                <label for="brand" class="block text-sm font-semibold text-slate-700 mb-1">Marca</label>
-                                <input type="text" name="brand" id="brand" x-model="brand"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                            </div>
-
-                            <div>
-                                <label for="model"
-                                    class="block text-sm font-semibold text-slate-700 mb-1">Modelo</label>
-                                <input type="text" name="model" id="model" x-model="model"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                            </div>
-
-                            <div>
-                                <label for="serial_number" class="block text-sm font-semibold text-slate-700 mb-1">N°
-                                    Serie</label>
-                                <input type="text" name="serial_number" id="serial_number" x-model="serial_number"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label for="category_id"
-                                    class="block text-sm font-semibold text-slate-700 mb-1">Categoría</label>
-                                <select name="category_id" id="category_id" x-model="category_id"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                                    <option value="">Sin categoría</option>
-                                    {% for cat in categories %}
-                                    <option value="{{ cat.id }}">
-                                        {% for p in cat.parents_path %}{{ p.name }} > {% endfor %}{{ cat.name }}
-                                    </option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div>
-                                <div class="flex items-center justify-between mb-1">
-                                    <label for="supplier_id"
-                                        class="block text-sm font-semibold text-slate-700">Proveedor</label>
-                                    <button type="button" @click="supplierModalOpen = true"
-                                        class="text-primary-600 hover:text-primary-700 text-xs font-medium flex items-center">
-                                        <i class="fa-solid fa-plus mr-1"></i> Nuevo
-                                    </button>
-                                </div>
-
-                                <select name="supplier_id" id="supplier_id" x-model="supplier_id"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                                    <option value="">Sin proveedor</option>
-                                    {% for supplier in suppliers %}
-                                    <option value="{{ supplier.id }}">{{ supplier.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            <div>
-                                <label for="status"
-                                    class="block text-sm font-semibold text-slate-700 mb-1">Estado</label>
-                                <select name="status" id="status" x-model="status"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                                    <option value="disponible">Disponible</option>
-                                    <option value="en_uso">En Uso</option>
-                                    <option value="prestado">Prestado</option>
-                                    <option value="mantenimiento">Mantenimiento</option>
-                                    <option value="baja">Baja</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="condition"
-                                    class="block text-sm font-semibold text-slate-700 mb-1">Condición</label>
-                                <select name="condition" id="condition" x-model="condition"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                                    <option value="nuevo">Nuevo</option>
-                                    <option value="usado">Usado</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="current_stock" class="block text-sm font-semibold text-slate-700 mb-1">Stock
-                                    Actual</label>
-                                <input type="number" name="current_stock" id="current_stock" x-model="current_stock"
-                                    min="0"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label for="ip_address"
-                                    class="block text-sm font-semibold text-slate-700 mb-1">Dirección IP</label>
-                                <input type="text" name="ip_address" id="ip_address" x-model="ip_address"
-                                    placeholder="Ej: 192.168.1.50"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                            </div>
-
-                            <div>
-                                <label for="parent_id" class="block text-sm font-semibold text-slate-700 mb-1">Instalado
-                                    en (Equipo)</label>
-                                <select name="parent_id" id="parent_id" x-model="parent_id"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                                    <option value="">No está en otro equipo</option>
-                                    {% for p in all_products %}
-                                    <template x-if="p.id != currentId">
-                                        <option value="{{ p.id }}">{{ p.name }} ({{ p.code }})</option>
-                                    </template>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label for="min_stock" class="block text-sm font-semibold text-slate-700 mb-1">Stock
-                                    Mínimo</label>
-                                <input type="number" name="min_stock" id="min_stock" x-model="min_stock" min="0"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                            </div>
-
-                            <div>
-                                <label for="location"
-                                    class="block text-sm font-semibold text-slate-700 mb-1">Ubicación</label>
-                                <input type="text" name="location" id="location" x-model="location"
-                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="reference_price" class="block text-sm font-semibold text-slate-700 mb-1">Precio
-                                Referencia</label>
-                            <input type="number" name="reference_price" id="reference_price" x-model="reference_price"
-                                step="0.01" min="0"
-                                class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
-                        </div>
-
-                        <div>
-                            <label for="notes" class="block text-sm font-semibold text-slate-700 mb-1">Notas</label>
-                            <textarea name="notes" id="notes" x-model="notes" rows="2"
-                                class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"></textarea>
-                        </div>
+                    <!-- Tabs Navigation -->
+                    <div class="flex border-b border-slate-200 bg-white px-6">
+                        <button type="button" @click="activeTab = 'info'"
+                            class="py-3 px-4 text-sm font-medium border-b-2 transition-colors"
+                            :class="activeTab === 'info' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'">
+                            <i class="fa-solid fa-circle-info mr-2"></i> Información
+                        </button>
+                        <button type="button" @click="activeTab = 'inventory'"
+                            class="py-3 px-4 text-sm font-medium border-b-2 transition-colors"
+                            :class="activeTab === 'inventory' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'">
+                            <i class="fa-solid fa-boxes-stacked mr-2"></i> Inventario
+                        </button>
+                        <button type="button" @click="activeTab = 'details'"
+                            class="py-3 px-4 text-sm font-medium border-b-2 transition-colors"
+                            :class="activeTab === 'details' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'">
+                            <i class="fa-solid fa-list-check mr-2"></i> Detalles
+                        </button>
+                        <button type="button" @click="activeTab = 'media'"
+                            class="py-3 px-4 text-sm font-medium border-b-2 transition-colors"
+                            :class="activeTab === 'media' ? 'border-primary-600 text-primary-600' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'">
+                            <i class="fa-solid fa-image mr-2"></i> Multimedia
+                        </button>
                     </div>
 
-                    <div class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-3 sticky bottom-0">
+                    <!-- Scrollable Content -->
+                    <div class="p-6 overflow-y-auto flex-1">
+
+                        <!-- Tab: Info -->
+                        <div x-show="activeTab === 'info'" class="space-y-5">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label for="code" class="block text-sm font-semibold text-slate-700 mb-1">Código
+                                        *</label>
+                                    <input type="text" name="code" id="code" x-model="code" required
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                </div>
+                                <div>
+                                    <label for="name" class="block text-sm font-semibold text-slate-700 mb-1">Nombre
+                                        *</label>
+                                    <input type="text" name="name" id="name" x-model="name" required
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="description"
+                                    class="block text-sm font-semibold text-slate-700 mb-1">Descripción</label>
+                                <textarea name="description" id="description" x-model="description" rows="3"
+                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div>
+                                    <label for="brand"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Marca</label>
+                                    <input type="text" name="brand" id="brand" x-model="brand"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                </div>
+                                <div>
+                                    <label for="model"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Modelo</label>
+                                    <input type="text" name="model" id="model" x-model="model"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                </div>
+                                <div>
+                                    <label for="serial_number"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">N° Serie</label>
+                                    <input type="text" name="serial_number" id="serial_number" x-model="serial_number"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Inventory -->
+                        <div x-show="activeTab === 'inventory'" class="space-y-5" style="display: none;">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label for="category_id"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Categoría</label>
+                                    <select name="category_id" id="category_id" x-model="category_id"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                        <option value="">Sin categoría</option>
+                                        {% for cat in categories %}
+                                        <option value="{{ cat.id }}">
+                                            {% for p in cat.parents_path %}{{ p.name }} > {% endfor %}{{ cat.name }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <label for="supplier_id"
+                                            class="block text-sm font-semibold text-slate-700">Proveedor</label>
+                                        <button type="button" @click="supplierModalOpen = true"
+                                            class="text-primary-600 hover:text-primary-700 text-xs font-medium flex items-center">
+                                            <i class="fa-solid fa-plus mr-1"></i> Nuevo
+                                        </button>
+                                    </div>
+                                    <select name="supplier_id" id="supplier_id" x-model="supplier_id"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                        <option value="">Sin proveedor</option>
+                                        {% for supplier in suppliers %}
+                                        <option value="{{ supplier.id }}">{{ supplier.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div>
+                                    <label for="status"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Estado</label>
+                                    <select name="status" id="status" x-model="status"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                        <option value="disponible">Disponible</option>
+                                        <option value="en_uso">En Uso</option>
+                                        <option value="prestado">Prestado</option>
+                                        <option value="mantenimiento">Mantenimiento</option>
+                                        <option value="baja">Baja</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="condition"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Condición</label>
+                                    <select name="condition" id="condition" x-model="condition"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                        <option value="nuevo">Nuevo</option>
+                                        <option value="usado">Usado</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="location"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Ubicación</label>
+                                    <input type="text" name="location" id="location" x-model="location"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label for="current_stock"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Stock Actual</label>
+                                    <input type="number" name="current_stock" id="current_stock" x-model="current_stock"
+                                        min="0"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                </div>
+                                <div>
+                                    <label for="min_stock" class="block text-sm font-semibold text-slate-700 mb-1">Stock
+                                        Mínimo</label>
+                                    <input type="number" name="min_stock" id="min_stock" x-model="min_stock" min="0"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Details -->
+                        <div x-show="activeTab === 'details'" class="space-y-5" style="display: none;">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label for="ip_address"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Dirección IP</label>
+                                    <input type="text" name="ip_address" id="ip_address" x-model="ip_address"
+                                        placeholder="Ej: 192.168.1.50"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                </div>
+                                <div>
+                                    <label for="parent_id"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Instalado en
+                                        (Equipo)</label>
+                                    <select name="parent_id" id="parent_id" x-model="parent_id"
+                                        class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                        <option value="">No está en otro equipo</option>
+                                        {% for p in all_products %}
+                                        <template x-if="p.id != currentId">
+                                            <option value="{{ p.id }}">{{ p.name }} ({{ p.code }})</option>
+                                        </template>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div>
+                                    <label for="reference_price"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Precio Referencia
+                                        (Local)</label>
+                                    <div class="relative rounded-md shadow-sm">
+                                        <div
+                                            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                            <span class="text-slate-500 sm:text-sm">$</span>
+                                        </div>
+                                        <input type="number" name="reference_price" id="reference_price"
+                                            x-model="reference_price" step="0.01" min="0"
+                                            class="block w-full rounded-lg border-slate-300 pl-7 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="precio_dolar"
+                                        class="block text-sm font-semibold text-slate-700 mb-1">Precio USD</label>
+                                    <div class="relative rounded-md shadow-sm">
+                                        <div
+                                            class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                                            <span class="text-slate-500 sm:text-sm">US$</span>
+                                        </div>
+                                        <input type="number" name="precio_dolar" id="precio_dolar"
+                                            x-model="precio_dolar" step="0.01" min="0"
+                                            class="block w-full rounded-lg border-slate-300 pl-10 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="fecha_fin_vida_util"
+                                    class="block text-sm font-semibold text-slate-700 mb-1">Fecha Fin Vida Útil</label>
+                                <input type="date" name="fecha_fin_vida_util" id="fecha_fin_vida_util"
+                                    x-model="fecha_fin_vida_util"
+                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm py-2.5">
+                                <p class="mt-1 text-xs text-slate-500">Fecha estimada de obsolescencia o reemplazo.</p>
+                            </div>
+                        </div>
+
+                        <!-- Tab: Media & Notes -->
+                        <div x-show="activeTab === 'media'" class="space-y-5" style="display: none;">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-700 mb-2">Imagen del
+                                    Producto</label>
+                                <div class="flex items-start space-x-4">
+                                    <div
+                                        class="flex-shrink-0 w-32 h-32 bg-slate-100 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative">
+                                        <template x-if="image_preview">
+                                            <img :src="image_preview" class="w-full h-full object-cover">
+                                        </template>
+                                        <template x-if="!image_preview">
+                                            <div class="text-center p-2">
+                                                <i class="fa-solid fa-image text-slate-400 text-2xl mb-1"></i>
+                                                <span class="block text-xs text-slate-400">Sin imagen</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                    <div class="flex-1">
+                                        <input type="file" name="image" id="image" accept="image/*"
+                                            @change="handleImageUpload"
+                                            class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 cursor-pointer">
+                                        <p class="mt-2 text-xs text-slate-500">Formatos: JPG, PNG, WEBP. Máx 5MB.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="notes" class="block text-sm font-semibold text-slate-700 mb-1">Notas
+                                    Adicionales</label>
+                                <textarea name="notes" id="notes" x-model="notes" rows="4"
+                                    class="block w-full rounded-lg border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Footer Actions -->
+                    <div
+                        class="bg-slate-50 px-6 py-4 flex flex-row-reverse gap-3 flex-shrink-0 border-t border-slate-100">
                         <button type="submit"
                             class="w-full sm:w-auto inline-flex justify-center items-center rounded-xl border border-transparent shadow-sm px-5 py-2.5 bg-primary-600 text-sm font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-all">
-                            <i class="fa-solid fa-check mr-2"></i> Guardar
+                            <i class="fa-solid fa-check mr-2"></i> Guardar Producto
                         </button>
                         <button type="button" @click="modalOpen = false"
                             class="w-full sm:w-auto inline-flex justify-center items-center rounded-xl border border-slate-300 shadow-sm px-5 py-2.5 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all">

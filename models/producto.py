@@ -34,6 +34,11 @@ class Producto(db.Model):
     ip_address = db.Column(db.String(45)) # Soporta IPv6
     parent_id = db.Column(db.Integer, db.ForeignKey('productos.id'))
     
+    # Nuevos campos Fase 10/11
+    fecha_fin_vida_util = db.Column(db.Date) # Para búsquedas por fecha
+    precio_dolar = db.Column(db.Numeric(10, 2))
+    image_path = db.Column(db.String(255)) # Ruta relativa a static/uploads/productos
+    
     # Foreign Keys
     category_id = db.Column(db.Integer, db.ForeignKey('categorias.id'))
     supplier_id = db.Column(db.Integer, db.ForeignKey('proveedores.id'))
